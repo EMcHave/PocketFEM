@@ -19,7 +19,8 @@
     <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-    <PackageCertificateThumbprint>6D1E23C963F4981E2678951744305CF0EE1FB2C8</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>
+    </PackageCertificateThumbprint>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
@@ -128,6 +129,10 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Model\NonLinearFriction.cs" />
+    <Compile Include="NlnFriction.xaml.cs">
+      <DependentUpon>NlnFriction.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Model\PlotClass.cs" />
     <Compile Include="Navigation.xaml.cs">
       <DependentUpon>Navigation.xaml</DependentUpon>
@@ -208,6 +213,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="NlnFriction.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Navigation.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -233,6 +242,9 @@
     </PackageReference>
     <PackageReference Include="OxyPlot.Windows">
       <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Win2D.uwp">
+      <Version>1.26.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

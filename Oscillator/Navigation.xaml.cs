@@ -52,7 +52,6 @@ namespace Oscillator
             //Register a handler for when the window changes focus
             Window.Current.Activated += Current_Activated;
 
-            ApplicationView appview = ApplicationView.GetForCurrentView();
             
         }
 

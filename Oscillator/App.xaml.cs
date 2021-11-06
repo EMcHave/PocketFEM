@@ -20,9 +20,6 @@ using Windows.UI.Xaml.Navigation;
 
 namespace Oscillator
 {
-    /// <summary>
-    /// Обеспечивает зависящее от конкретного приложения поведение, дополняющее класс Application по умолчанию.
-    /// </summary>
     sealed partial class App : Application
     {
         /// <summary>
