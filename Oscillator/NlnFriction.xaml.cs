@@ -15,6 +15,7 @@ using Windows.UI.Xaml.Navigation;
 using Windows.UI;
 using System.Numerics;
 using Microsoft.Graphics.Canvas.Effects;
+using MathNet.Numerics.LinearAlgebra;
 
 
 namespace Oscillator
@@ -22,13 +23,15 @@ namespace Oscillator
 
     public sealed partial class BlankPage1 : Page
     {
-        GaussianBlurEffect blur = new GaussianBlurEffect();
-        public int i = 0;
-        public List<float> resources = new List<float>();
+        private int i;
+        private int j;
+
+        private Model.NonLinearFriction nonLinear;
+        
 
         public BlankPage1()
         {
-            
+            nonLinear = new Model.NonLinearFriction();
             this.InitializeComponent();
         }
 
@@ -36,59 +39,47 @@ namespace Oscillator
             Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, 
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
         {
-            float radius = (float)(1 + Math.Sin(args.Timing.TotalTime.TotalSeconds)) * 10f;
-            blur.BlurAmount = radius;
-            args.DrawingSession.DrawImage(blur);
-            //args.DrawingSession.FillCircle(resources[i], 150, 20, Color.FromArgb(255, 255, 255, 255));
-        }
-
-        private void canvas_Update(
-            Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, 
-            Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedUpdateEventArgs args)
-        {
-            //i++;
+            args.DrawingSession.FillCircle((float)nonLinear.animResource[0][i], (float)nonLinear.animResource[1][i], 20, Color.FromArgb(255, 255, 255, 255));
+            args.DrawingSession.DrawLine(150, 0, (float)nonLinear.animResource[0][i], (float)nonLinear.animResource[1][i], Color.FromArgb(255, 255, 255, 255));
+            args.DrawingSession.DrawImage(clPen);
+            if (i < nonLinear.animResource[0].Count - 1)
+                i++;
+            else
+                animCanvas.Paused = true;
         }
 
         private void phaseCanvas_Draw(
             Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender,
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
         {
-            
+            args.DrawingSession.FillCircle((float)nonLinear.phaseResource[0][j], (float)nonLinear.phaseResource[1][j], 2, Color.FromArgb(255, 255, 255, 255));
+            args.DrawingSession.DrawImage(clPh);
+            if (j < nonLinear.phaseResource[0].Count - 1)
+                j++;
+            else
+                phaseCanvas.Paused = true;
         }
-
-        private void phaseCanvas_Update(
-            Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender,
-            Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedUpdateEventArgs args)
-        {
-
-        }
-
+        private CanvasCommandList clPen;
         private void animCanvas_CreateResources(
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedControl sender,
             Microsoft.Graphics.Canvas.UI.CanvasCreateResourcesEventArgs args)
         {
-            for (int i = 0; i < 300; i++)
-                resources.Add(i);
-
-            CanvasCommandList cl = new CanvasCommandList(sender);
-            using (CanvasDrawingSession clds = cl.CreateDrawingSession())
+            
+            clPen  = new CanvasCommandList(sender);
+            using (CanvasDrawingSession clds = clPen.CreateDrawingSession())
             {
-                clds.FillCircle(150, 150, 20, Color.FromArgb(255, 255, 255, 255));
-                clds.DrawLine(100, 2, 200, 2, Color.FromArgb(255, 255, 255, 255));
+                clds.DrawLine(100, 1, 200, 1, Color.FromArgb(255, 255, 255, 255), 2);
             }
-            blur = new GaussianBlurEffect()
-            {
-                Source = cl,
-                BlurAmount = 10.0f
-            };
         }
 
+        private CanvasCommandList clPh;
         private void phaseCanvas_CreateResources(
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedControl sender,
             Microsoft.Graphics.Canvas.UI.CanvasCreateResourcesEventArgs args)
         {
-            CanvasCommandList cl = new CanvasCommandList(sender);
-            using (CanvasDrawingSession clds = cl.CreateDrawingSession())
+            
+            clPh = new CanvasCommandList(sender);
+            using (CanvasDrawingSession clds = clPh.CreateDrawingSession())
             { 
                 clds.DrawLine(150, 0, 150, 300, Color.FromArgb(255, 255, 255, 255), 2);
                 clds.DrawLine(0, 150, 300, 150, Color.FromArgb(255, 255, 255, 255), 2);
@@ -99,7 +90,10 @@ namespace Oscillator
 
         private void startButton_Click(object sender, RoutedEventArgs e)
         {
-            //animCanvas.GameLoopStarting += AnimCanvas_GameLoopStarting;
+            i = 0;
+            j = 0;
+            nonLinear.forPhase();
+            nonLinear.forPundulum();
             animCanvas.Paused = !animCanvas.Paused;
             phaseCanvas.Paused = !phaseCanvas.Paused;
         }
@@ -119,6 +113,14 @@ namespace Oscillator
                 nField.IsEnabled = true;
                 fField.IsEnabled = false;
             }
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            animCanvas.RemoveFromVisualTree();
+            animCanvas = null;
+            phaseCanvas.RemoveFromVisualTree();
+            phaseCanvas = null;
         }
     }
 }

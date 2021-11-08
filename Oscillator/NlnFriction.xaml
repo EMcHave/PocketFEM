@@ -8,48 +8,52 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:oxy="using:OxyPlot.Windows"
     xmlns:canvas ="using:Microsoft.Graphics.Canvas.UI.Xaml"
-    mc:Ignorable="d">
+    mc:Ignorable="d" Unloaded="Page_Unloaded">
 
     <Grid>
-        <StackPanel Padding="30,20,40,0">
-            <TextBlock TextWrapping="Wrap" Text="Нелинейное трение" Margin="10,0,40,5" FontSize="14" FontWeight="Bold"/>
-            <ScrollViewer Margin="0,0,20,20" FontSize="14">
+        <ScrollViewer
+                VerticalScrollMode="Enabled"
+                IsVerticalScrollChainingEnabled="True"
+                VerticalScrollBarVisibility="Auto"
+                Margin="0,0,-3,0" 
+                FontSize="14">
+            <StackPanel Padding="56,20,56,0">
+                <TextBlock TextWrapping="Wrap" Text="Нелинейное трение" Margin="10,0,40,10" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
                 <StackPanel>
                     <Border
-                        Background="{ThemeResource LayerFillColorDefaultBrush}"
-                        Margin="10"
-                        VerticalAlignment="Top" 
-                        HorizontalAlignment="Left" 
-                        CornerRadius="8"
-                        BorderThickness="1"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="800">
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            Margin="10"
+                            VerticalAlignment="Top" 
+                            HorizontalAlignment="Left" 
+                            CornerRadius="8"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="800">
                         <StackPanel Orientation="Horizontal">
                             <canvas:CanvasAnimatedControl 
-                            x:Name ="animCanvas" 
-                            Draw="canvas_Draw" 
-                            Update="canvas_Update" 
-                            Height="300" Width="300" 
-                            HorizontalAlignment="Left"
-                            Paused="True"
-                            CreateResources="animCanvas_CreateResources">
+                                x:Name ="animCanvas" 
+                                Draw="canvas_Draw" 
+                                Height="300" Width="300" 
+                                HorizontalAlignment="Left"
+                                Paused="True"
+                                CreateResources="animCanvas_CreateResources">
                             </canvas:CanvasAnimatedControl>
                             <canvas:CanvasAnimatedControl 
-                            x:Name="phaseCanvas" Width="300" Margin="56,0,0,0"
-                            Paused="True"
-                            Draw="phaseCanvas_Draw"
-                            Update="phaseCanvas_Update"
-                            CreateResources="phaseCanvas_CreateResources"/>
+                                x:Name="phaseCanvas" Width="300" Margin="56,0,0,0"
+                                Paused="True"
+                                Draw="phaseCanvas_Draw"
+                                CreateResources="phaseCanvas_CreateResources"/>
                         </StackPanel>
                     </Border>
 
                     <Border
-                        Background="{ThemeResource LayerFillColorDefaultBrush}"                    
-                        VerticalAlignment="Top" 
-                        HorizontalAlignment="Left" 
-                        CornerRadius="8"
-                        Margin="10"
-                        BorderThickness="1"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="800">
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"                    
+                            VerticalAlignment="Top" 
+                            HorizontalAlignment="Left" 
+                            CornerRadius="8"
+                            Margin="10"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="800">
                         <StackPanel Margin="15,15,0,15">
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="startButton" Content="Start!" IsEnabled="False" Click="startButton_Click" Margin="0,0,10,0" Width="160" Height="40" HorizontalAlignment="Center"/>
@@ -64,41 +68,42 @@
                             <StackPanel Orientation="Horizontal">
                                 <StackPanel Grid.Row="3" Margin="0,10,30,0" Orientation="Vertical" RenderTransformOrigin="0.497,0.506" HorizontalAlignment="Left" Width="120" VerticalAlignment="Top">
                                     <TextBlock Text="Длина маятника" TextWrapping="Wrap" Height="30" Width="119" HorizontalAlignment="Left"/>
-                                    <muxc:NumberBox x:Name="c1Field" Margin="0,0,0,10" />
+                                    <muxc:NumberBox x:Name="c1Field" Margin="0,0,0,10" Value="{x:Bind nonLinear.l, Mode=TwoWay}"/>
                                     <TextBlock TextWrapping="Wrap" Text="Масса маятника" Height="30" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                                    <muxc:NumberBox x:Name="c2Field" Margin="0,0,0,10" />
+                                    <muxc:NumberBox x:Name="c2Field" Margin="0,0,0,10" Value="{x:Bind nonLinear.m, Mode=TwoWay}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="3" Margin="0,10,30,0" Width="150" HorizontalAlignment="Left" VerticalAlignment="Top">
                                     <TextBlock TextWrapping="Wrap" Height="30" Text="Коэфф. вязкого трения"></TextBlock>
-                                    <muxc:NumberBox x:Name="bField" IsEnabled="False" Margin="0,0,0,10" />
+                                    <muxc:NumberBox x:Name="bField" IsEnabled="False" Margin="0,0,0,10" Value="{x:Bind nonLinear.b, Mode=TwoWay}" />
                                     <TextBlock Text="Степень n" TextWrapping="Wrap" Height="30"/>
-                                    <muxc:NumberBox x:Name="nField" IsEnabled="False" Margin="0,0,0,10"/>
+                                    <muxc:NumberBox x:Name="nField" IsEnabled="False" Margin="0,0,0,10" Value="{x:Bind nonLinear.n, Mode=TwoWay}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="3" Margin="0,10,0,0" HorizontalAlignment="Left" Width="149" VerticalAlignment="Top">
                                     <TextBlock Text="Время моделирования" TextWrapping="Wrap" Height="30"/>
-                                    <muxc:NumberBox x:Name="timeField" Margin="0,0,0,10" />
+                                    <muxc:NumberBox x:Name="timeField" Margin="0,0,0,10" Value="{x:Bind nonLinear.t, Mode=TwoWay}"/>
                                     <TextBlock Text="Сила F_0" TextWrapping="Wrap" Height="30"/>
-                                    <muxc:NumberBox x:Name="fField" IsEnabled="False"/>
+                                    <muxc:NumberBox x:Name="fField" IsEnabled="False" Value="{x:Bind nonLinear.F, Mode=TwoWay}"/>
                                 </StackPanel>
                             </StackPanel>
                             <TextBlock HorizontalAlignment="Left" Margin="0,10,0,0" Grid.Row="4" TextWrapping="Wrap" Text="Введите начальные условия:" FontSize="18" Height="24" Width="385"/>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal" Height="32" VerticalAlignment="Top" HorizontalAlignment="Left" Width="760">
                                 <TextBlock Text="Fi0" TextWrapping="Wrap" Margin="0,5,15,0" Height="21" VerticalAlignment="Top"/>
-                                <muxc:NumberBox Margin="0,0,30,0" />
+                                <muxc:NumberBox Margin="0,0,30,0" Value="{x:Bind nonLinear.fi0, Mode=TwoWay}"/>
                                 <TextBlock Text="Omega0" TextWrapping="Wrap" Margin="0,5,10,0"/>
-                                <muxc:NumberBox/>
+                                <muxc:NumberBox Value="{x:Bind nonLinear.omega0, Mode=TwoWay}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
-                    
-                    
+
+
                 </StackPanel>
 
-            </ScrollViewer>
 
 
-        </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
 
     </Grid>
 </Page>
