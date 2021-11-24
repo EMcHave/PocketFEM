@@ -39,11 +39,11 @@ namespace Oscillator.Model
 
         public NonLinearFriction()
         {
-            m = 20;
-            l = 0.25;
+            m = 10;
+            l = 0.5;
             F = 20;
-            b = 2;
-            n = 3;
+            b = 0.5;
+            n = 1;
             fi0 = 1;
             omega0 = 5;
             t = 10;
@@ -97,11 +97,11 @@ namespace Oscillator.Model
                 double fi = A[0];
                 double omega = A[1];
                 if (type == TypeOfSystem.NonLinear)
-                    return Vector<double>.Build.Dense(new[] { omega, -b / m * Math.Pow(Math.Abs(omega), n)*omega - g / l * Math.Sin(fi) });
+                    return Vector<double>.Build.Dense(new[] { omega, -b / (l * l * m) * Math.Pow(Math.Abs(omega), n)*omega - g / l * Math.Sin(fi) });
                 else if(type == TypeOfSystem.Coulomb)
-                    return Vector<double>.Build.Dense(new[] { omega, - F/m*Math.Sign(omega) - b / m * Math.Abs(omega)*Math.Sign(omega) - g / l * Math.Sin(fi) });
+                    return Vector<double>.Build.Dense(new[] { omega, - F/ (l * m) * Math.Sign(omega) - b /(l * l * m) * Math.Abs(omega)*Math.Sign(omega) - g / l * Math.Sin(fi) });
                 else
-                    return Vector<double>.Build.Dense(new[] { omega, F / m * Math.Sign(omega) + b / m * Math.Abs(omega) * Math.Sign(omega) - g / l * Math.Sin(fi) });
+                    return Vector<double>.Build.Dense(new[] { omega, F / (m * l) * Math.Sign(omega) + b / (l * l * m) * Math.Abs(omega) * Math.Sign(omega) - g / l * Math.Sin(fi) });
             };
         }
     }
