@@ -9,6 +9,12 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace Oscillator.Model
 {
+    enum TypeOfSystem
+    {
+        NonLinear = 0,
+        Coulomb = 1,
+        Unstable = 2
+    }
     internal class NonLinearFriction
     {
         private const double g = 9.81;
@@ -21,6 +27,10 @@ namespace Oscillator.Model
         public double fi0 { set; get; }
         public double omega0 { set; get; }
         public double t { set; get; }
+        public TypeOfSystem type { set; get; }
+
+        private Vector<double>[] sol;
+
         private int N { get { return (int)(t / dt); } }
 
         public Vector<double>[] animResource { private set; get; }
@@ -31,11 +41,11 @@ namespace Oscillator.Model
         {
             m = 20;
             l = 0.25;
-            F = 0;
-            b = 1;
+            F = 20;
+            b = 2;
             n = 3;
-            fi0 = - 1;
-            omega0 = -0.1;
+            fi0 = 1;
+            omega0 = 5;
             t = 10;
         }
 
@@ -52,47 +62,31 @@ namespace Oscillator.Model
             }
         }
 
-        private Vector<double>[] Solution()
+        void Solution()
         {
-            Vector<double>[] systemCoordinates = RungeKutta.FourthOrder(stCond, 0, t, N, DerivativeMakerNln());
-
-            return systemCoordinates;
+            sol = RungeKutta.FourthOrder(stCond, 0, t, N, DerivativeMakerNln());
         }
 
-        public void forPundulum()
+        public void Plots()
         {
-            Vector<double>[] sol = Solution();            
+            Solution();
             Vector<double> move = Vector<double>.Build.Dense(N, 150);
             Vector<double> fi = Vector<double>.Build.Dense(N);
             Vector<double> omega = Vector<double>.Build.Dense(N);
+            Vector<double> time = Vector<double>.Build.Dense(N);
             int n = 0;
             foreach (Vector<double> vec in sol)
             {
                 fi[n] = vec[0];
                 omega[n] = vec[1];
+                time[n] = 60*tLin[n];
                 n++;
             }
             Vector<double> x = move + 150 * Vector<double>.Sin(fi);
             Vector<double> y = 150 * Vector<double>.Cos(fi);
             animResource = new Vector<double>[] { x, y };
-        }
-
-        public void forPhase()
-        {
-            Vector<double>[] sol = Solution();
-            Vector<double> move = Vector<double>.Build.Dense(N, 150);
-            Vector<double> fi = Vector<double>.Build.Dense(N);
-            Vector<double> omega = Vector<double>.Build.Dense(N);
-            int n = 0;
-            foreach (Vector<double> vec in sol)
-            {
-                fi[n] = vec[0];
-                omega[n] = vec[1];
-                n++;
-            }
-            Vector<double> x = move + 40 * fi;
-            Vector<double> y = move + 10 * omega;
-            phaseResource = new Vector<double>[] { x, y };
+            phaseResource = new Vector<double>[] { move + 50 * fi, move - 10 * omega };
+            plotResource = new Vector<double>[] { move + 50 * fi, omega = move + 10 * omega, time };
         }
 
         private Func<double, Vector<double>, Vector<double>> DerivativeMakerNln()
@@ -102,9 +96,14 @@ namespace Oscillator.Model
                 double[] A = Z.ToArray();
                 double fi = A[0];
                 double omega = A[1];
-
-                return Vector<double>.Build.Dense(new[] { omega, -b/m*omega - g/l * Math.Sin(fi) });
+                if (type == TypeOfSystem.NonLinear)
+                    return Vector<double>.Build.Dense(new[] { omega, -b / m * Math.Pow(Math.Abs(omega), n)*omega - g / l * Math.Sin(fi) });
+                else if(type == TypeOfSystem.Coulomb)
+                    return Vector<double>.Build.Dense(new[] { omega, - F/m*Math.Sign(omega) - b / m * Math.Abs(omega)*Math.Sign(omega) - g / l * Math.Sin(fi) });
+                else
+                    return Vector<double>.Build.Dense(new[] { omega, F / m * Math.Sign(omega) + b / m * Math.Abs(omega) * Math.Sign(omega) - g / l * Math.Sin(fi) });
             };
         }
     }
 }
+

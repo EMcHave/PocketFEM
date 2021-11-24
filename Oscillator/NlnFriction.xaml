@@ -47,6 +47,26 @@
                     </Border>
 
                     <Border
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            Margin="10"
+                            VerticalAlignment="Top" 
+                            HorizontalAlignment="Left" 
+                            CornerRadius="8"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="800">
+                        <StackPanel Orientation="Horizontal">
+                            <canvas:CanvasAnimatedControl 
+                                x:Name ="coordCanvas" 
+                                Draw="coordCanvas_Draw"
+                                Height="300" Width="656"
+                                HorizontalAlignment="Left"
+                                Paused="True"
+                                CreateResources="coordCanvas_CreateResources">
+                            </canvas:CanvasAnimatedControl>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border
                             Background="{ThemeResource LayerFillColorDefaultBrush}"                    
                             VerticalAlignment="Top" 
                             HorizontalAlignment="Left" 
@@ -58,8 +78,9 @@
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="startButton" Content="Start!" IsEnabled="False" Click="startButton_Click" Margin="0,0,10,0" Width="160" Height="40" HorizontalAlignment="Center"/>
                                 <ComboBox x:Name="comboBox" Height="40" PlaceholderText="Выберите пресет" SelectionChanged="ComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="Кулонова сила + вязкое трение"/>
                                     <ComboBoxItem Content="Нелинейно-вязкое трение степени (n-1)"/>
+                                    <ComboBoxItem Content="Кулонова сила + вязкое трение"/>
+                                    <ComboBoxItem Content="Неустойчивая система"/>
                                 </ComboBox>
                             </StackPanel>
 
