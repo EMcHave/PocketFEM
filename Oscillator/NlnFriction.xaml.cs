@@ -7,15 +7,14 @@ using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Geometry;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI;
-using System.Numerics;
-using Microsoft.Graphics.Canvas.Effects;
-using MathNet.Numerics.LinearAlgebra;
+
 
 
 namespace Oscillator
@@ -26,6 +25,9 @@ namespace Oscillator
         private int i;
         private int j;
         private int k;
+        private CanvasGeometry phasePath;
+        private CanvasGeometry anglePath;
+        private CanvasGeometry speedPath;
 
         private Model.NonLinearFriction nonLinear;
         
@@ -55,6 +57,7 @@ namespace Oscillator
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
         {
             args.DrawingSession.FillCircle((float)nonLinear.phaseResource[0][j], (float)nonLinear.phaseResource[1][j], 5, Color.FromArgb(255, 255, 255, 255));
+            args.DrawingSession.DrawGeometry(phasePath, Color.FromArgb(255, 255, 255, 255));
             args.DrawingSession.DrawImage(clPh);
             if (j < nonLinear.phaseResource[0].Count - 1)
                 j++;
@@ -62,7 +65,17 @@ namespace Oscillator
                 phaseCanvas.Paused = true;
         }
 
-
+        private void phaseCanvas_Update(
+            Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender,
+            Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedUpdateEventArgs args)
+        {
+            CanvasPathBuilder phaseBuild = new CanvasPathBuilder(sender);
+            phaseBuild.BeginFigure((float)nonLinear.phaseResource[0][0], (float)nonLinear.phaseResource[1][0]);
+            for (int it = 1; it < j; it++)
+                phaseBuild.AddLine((float)nonLinear.phaseResource[0][it], (float)nonLinear.phaseResource[1][it]);
+            phaseBuild.EndFigure(CanvasFigureLoop.Open);
+            phasePath = CanvasGeometry.CreatePath(phaseBuild);
+        }
 
         private CanvasCommandList clPen;
         private void animCanvas_CreateResources(
@@ -102,10 +115,32 @@ namespace Oscillator
             args.DrawingSession.DrawImage(clCoord);
             args.DrawingSession.FillCircle((float)nonLinear.plotResource[2][k], (float)nonLinear.plotResource[0][k], 8, Color.FromArgb(255, 255, 0, 0));
             args.DrawingSession.FillCircle((float)nonLinear.plotResource[2][k], (float)nonLinear.plotResource[1][k], 8, Color.FromArgb(255, 0, 191, 255));
+            args.DrawingSession.DrawGeometry(anglePath, Color.FromArgb(255, 255, 0, 0));
+            args.DrawingSession.DrawGeometry(speedPath, Color.FromArgb(255, 0, 191, 255));
             if (k < nonLinear.plotResource[0].Count - 1)
                 k++;
             else
                 coordCanvas.Paused = true;
+        }
+
+        private void coordCanvas_Update(
+            Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender,
+            Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedUpdateEventArgs args)
+        {
+            CanvasPathBuilder angleBuild = new CanvasPathBuilder(sender);
+            CanvasPathBuilder speedBuild = new CanvasPathBuilder(sender);
+            angleBuild.BeginFigure((float)nonLinear.plotResource[2][0], (float)nonLinear.plotResource[0][0]);
+            speedBuild.BeginFigure((float)nonLinear.plotResource[2][0], (float)nonLinear.plotResource[1][0]);
+            for (int it = 1; it < k; it++)
+            {
+                angleBuild.AddLine((float)nonLinear.plotResource[2][it], (float)nonLinear.plotResource[0][it]);
+                speedBuild.AddLine((float)nonLinear.plotResource[2][it], (float)nonLinear.plotResource[1][it]);
+            }
+            
+            angleBuild.EndFigure(CanvasFigureLoop.Open);
+            speedBuild.EndFigure(CanvasFigureLoop.Open);
+            anglePath = CanvasGeometry.CreatePath(angleBuild);
+            speedPath = CanvasGeometry.CreatePath(speedBuild);
         }
 
         private CanvasCommandList clCoord;

@@ -41,6 +41,7 @@
                                 x:Name="phaseCanvas" Width="300" Margin="56,0,0,0"
                                 Paused="True"
                                 Draw="phaseCanvas_Draw"
+                                Update="phaseCanvas_Update"
                                 CreateResources="phaseCanvas_CreateResources"/>
                         </StackPanel>
                     </Border>
@@ -56,6 +57,7 @@
                         <StackPanel Orientation="Horizontal">
                             <canvas:CanvasAnimatedControl 
                                 x:Name ="coordCanvas" 
+                                Update="coordCanvas_Update"
                                 Draw="coordCanvas_Draw"
                                 Height="300" Width="656"
                                 HorizontalAlignment="Left"

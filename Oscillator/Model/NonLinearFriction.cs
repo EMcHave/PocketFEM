@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using MathNet.Numerics;
 using MathNet.Numerics.OdeSolvers;
 using MathNet.Numerics.LinearAlgebra;
@@ -79,7 +75,7 @@ namespace Oscillator.Model
             {
                 fi[n] = vec[0];
                 omega[n] = vec[1];
-                time[n] = 60*tLin[n];
+                time[n] = (600/t)*tLin[n];
                 n++;
             }
             Vector<double> x = move + 150 * Vector<double>.Sin(fi);
@@ -97,7 +93,7 @@ namespace Oscillator.Model
                 double fi = A[0];
                 double omega = A[1];
                 if (type == TypeOfSystem.NonLinear)
-                    return Vector<double>.Build.Dense(new[] { omega, -b / (l * l * m) * Math.Pow(Math.Abs(omega), n)*omega - g / l * Math.Sin(fi) });
+                    return Vector<double>.Build.Dense(new[] { omega, -b / (l * l * m) * Math.Pow(Math.Abs(omega), n - 1)*omega - g / l * Math.Sin(fi) });
                 else if(type == TypeOfSystem.Coulomb)
                     return Vector<double>.Build.Dense(new[] { omega, - F/ (l * m) * Math.Sign(omega) - b /(l * l * m) * Math.Abs(omega)*Math.Sign(omega) - g / l * Math.Sin(fi) });
                 else
