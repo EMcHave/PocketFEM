@@ -190,6 +190,12 @@ namespace Oscillator
                 nField.IsEnabled = false;
                 fField.IsEnabled = true;
             }
+            if(comboBox.SelectedIndex == 3)
+            {
+                bField.IsEnabled = false;
+                nField.IsEnabled= false;
+                fField.IsEnabled = false;
+            }
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)

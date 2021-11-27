@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using MathNet.Numerics;
 using MathNet.Numerics.OdeSolvers;
 using MathNet.Numerics.LinearAlgebra;
@@ -9,7 +10,8 @@ namespace Oscillator.Model
     {
         NonLinear = 0,
         Coulomb = 1,
-        Unstable = 2
+        Unstable = 2, 
+        Ideal = 3
     }
     internal class NonLinearFriction
     {
@@ -29,9 +31,9 @@ namespace Oscillator.Model
 
         private int N { get { return (int)(t / dt); } }
 
-        public Vector<double>[] animResource { private set; get; }
-        public Vector<double>[] phaseResource { private set; get; }
-        public Vector<double>[] plotResource { private set; get; }
+        public List<Vector<double>> animResource { private set; get; }
+        public List<Vector<double>> phaseResource { private set; get; }
+        public List<Vector<double>> plotResource { private set; get; }
 
         public NonLinearFriction()
         {
@@ -80,9 +82,9 @@ namespace Oscillator.Model
             }
             Vector<double> x = move + 150 * Vector<double>.Sin(fi);
             Vector<double> y = 150 * Vector<double>.Cos(fi);
-            animResource = new Vector<double>[] { x, y };
-            phaseResource = new Vector<double>[] { move + 50 * fi, move - 10 * omega };
-            plotResource = new Vector<double>[] { move + 50 * fi, omega = move + 10 * omega, time };
+            animResource = new List<Vector<double>> { x, y };
+            phaseResource = new List<Vector<double>> { move + 50 * fi, move - 10 * omega };
+            plotResource = new List<Vector<double>> { move + 50 * fi, move + 10 * omega, time };
         }
 
         private Func<double, Vector<double>, Vector<double>> DerivativeMakerNln()
@@ -96,8 +98,10 @@ namespace Oscillator.Model
                     return Vector<double>.Build.Dense(new[] { omega, -b / (l * l * m) * Math.Pow(Math.Abs(omega), n - 1)*omega - g / l * Math.Sin(fi) });
                 else if(type == TypeOfSystem.Coulomb)
                     return Vector<double>.Build.Dense(new[] { omega, - F/ (l * m) * Math.Sign(omega) - b /(l * l * m) * Math.Abs(omega)*Math.Sign(omega) - g / l * Math.Sin(fi) });
-                else
+                else if(type == TypeOfSystem.Unstable)
                     return Vector<double>.Build.Dense(new[] { omega, F / (m * l) * Math.Sign(omega) + b / (l * l * m) * Math.Abs(omega) * Math.Sign(omega) - g / l * Math.Sin(fi) });
+                else
+                    return Vector<double>.Build.Dense(new[] { omega, - g / l * Math.Sin(fi) });
             };
         }
     }

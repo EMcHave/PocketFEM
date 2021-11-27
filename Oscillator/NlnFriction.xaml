@@ -82,6 +82,7 @@
                                     <ComboBoxItem Content="Нелинейно-вязкое трение степени (n-1)"/>
                                     <ComboBoxItem Content="Кулонова сила + вязкое трение"/>
                                     <ComboBoxItem Content="Неустойчивая система"/>
+                                    <ComboBoxItem Content="Идеальный маятник"/>
                                 </ComboBox>
                             </StackPanel>
 
