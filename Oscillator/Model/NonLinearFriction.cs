@@ -80,7 +80,7 @@ namespace Oscillator.Model
                 time[n] = (600/t)*tLin[n];
                 n++;
             }
-            Vector<double> x = move + 150 * Vector<double>.Sin(fi);
+            Vector<double> x = Vector<double>.Build.Dense(N, 175) + 150 * Vector<double>.Sin(fi);
             Vector<double> y = 150 * Vector<double>.Cos(fi);
             animResource = new List<Vector<double>> { x, y };
             phaseResource = new List<Vector<double>> { move + 50 * fi, move - 10 * omega };

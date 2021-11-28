@@ -32,7 +32,7 @@
                             <canvas:CanvasAnimatedControl 
                                 x:Name ="animCanvas" 
                                 Draw="canvas_Draw" 
-                                Height="300" Width="300" 
+                                Height="300" Width="350" 
                                 HorizontalAlignment="Left"
                                 Paused="True"
                                 CreateResources="animCanvas_CreateResources">
@@ -59,7 +59,7 @@
                                 x:Name ="coordCanvas" 
                                 Update="coordCanvas_Update"
                                 Draw="coordCanvas_Draw"
-                                Height="300" Width="656"
+                                Height="300" Width="706"
                                 HorizontalAlignment="Left"
                                 Paused="True"
                                 CreateResources="coordCanvas_CreateResources">

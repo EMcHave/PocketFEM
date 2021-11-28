@@ -44,7 +44,7 @@ namespace Oscillator
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
         {
             args.DrawingSession.FillCircle((float)nonLinear.animResource[0][i], (float)nonLinear.animResource[1][i], 20, Color.FromArgb(255, 255, 255, 255));
-            args.DrawingSession.DrawLine(150, 0, (float)nonLinear.animResource[0][i], (float)nonLinear.animResource[1][i], Color.FromArgb(255, 255, 255, 255));
+            args.DrawingSession.DrawLine(175, 0, (float)nonLinear.animResource[0][i], (float)nonLinear.animResource[1][i], Color.FromArgb(255, 255, 255, 255));
             args.DrawingSession.DrawImage(clPen);
             if (i < nonLinear.animResource[0].Count - 1)
                 i++;
@@ -86,7 +86,7 @@ namespace Oscillator
             clPen  = new CanvasCommandList(sender);
             using (CanvasDrawingSession clds = clPen.CreateDrawingSession())
             {
-                clds.DrawLine(100, 1, 200, 1, Color.FromArgb(255, 255, 255, 255), 2);
+                clds.DrawLine(150, 1, 200, 1, Color.FromArgb(255, 255, 255, 255), 2);
             }
         }
 
@@ -152,8 +152,8 @@ namespace Oscillator
             using (CanvasDrawingSession clds = clCoord.CreateDrawingSession())
             {
                 clds.DrawLine(1, 0, 1, 300, Color.FromArgb(255, 255, 255, 255), 2);
-                clds.DrawLine(0, 150, 656, 150, Color.FromArgb(255, 255, 255, 255), 2);
-                clds.DrawText("time", 595, 155, Color.FromArgb(255, 255, 255, 255));
+                clds.DrawLine(0, 150, 706, 150, Color.FromArgb(255, 255, 255, 255), 2);
+                clds.DrawText("time", 645, 155, Color.FromArgb(255, 255, 255, 255));
                 clds.DrawText("value", 10, 2, Color.FromArgb(255, 255, 255, 255));
                 clds.DrawText("Angle", 590, 2, Color.FromArgb(255, 255, 0, 0));
                 clds.DrawText("Speed", 590, 30, Color.FromArgb(255, 0, 191, 255));
