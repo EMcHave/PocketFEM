@@ -84,7 +84,7 @@ namespace Oscillator.Model
             Vector<double> y = 150 * Vector<double>.Cos(fi);
             animResource = new List<Vector<double>> { x, y };
             phaseResource = new List<Vector<double>> { move + 50 * fi, move - 10 * omega };
-            plotResource = new List<Vector<double>> { move + 50 * fi, move + 10 * omega, time };
+            plotResource = new List<Vector<double>> { move - 30 * fi, move - 15 * omega, time };
         }
 
         private Func<double, Vector<double>, Vector<double>> DerivativeMakerNln()
