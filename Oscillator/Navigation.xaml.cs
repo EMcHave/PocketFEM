@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Windows;
-using System.Timers;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -18,21 +13,16 @@ using Windows.UI.Xaml.Navigation;
 using Windows.ApplicationModel.Core;
 using Windows.UI;
 using Windows.UI.ViewManagement;
-using MathNet.Numerics.LinearAlgebra;
-
-// Документацию по шаблону элемента "Пустая страница" см. по адресу https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x419
+using muxc = Microsoft.UI.Xaml.Controls;
 
 namespace Oscillator
 {
     public sealed partial class MainPage : Page
     {
-        
-
         public MainPage()
         {
             this.InitializeComponent();
-            nvView.SelectedItem = nvView.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First();
-            //contentFrame.Navigate(typeof(Page1));
+            nvView.SelectedItem = nvView.MenuItems[3];
             ApplicationViewTitleBar appTitleBar = ApplicationView.GetForCurrentView().TitleBar;
             appTitleBar.ButtonBackgroundColor = Colors.Transparent;            
             appTitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
@@ -45,14 +35,9 @@ namespace Oscillator
 
             coreTitleBar.LayoutMetricsChanged += CoreTitleBar_LayoutMetricsChanged;
 
-            // Register a handler for when the title bar visibility changes.
-            // For example, when the title bar is invoked in full screen mode.
             coreTitleBar.IsVisibleChanged += CoreTitleBar_IsVisibleChanged;
 
-            //Register a handler for when the window changes focus
-            Window.Current.Activated += Current_Activated;
-
-            
+            Window.Current.Activated += Current_Activated;  
         }
 
         private void CoreTitleBar_LayoutMetricsChanged(CoreApplicationViewTitleBar sender, object args)
@@ -93,7 +78,6 @@ namespace Oscillator
             const int expandedIndent = 48;
             int minimalIndent = 104;
 
-            // If the back button is not visible, reduce the TitleBar content indent.
             if (nvView.IsBackButtonVisible.Equals(Microsoft.UI.Xaml.Controls.NavigationViewBackButtonVisible.Collapsed))
             {
                 minimalIndent = 48;
@@ -101,7 +85,6 @@ namespace Oscillator
 
             Thickness currMargin = AppTitleBar.Margin;
 
-            // Set the TitleBar margin dependent on NavigationView display mode
             if (sender.PaneDisplayMode == Microsoft.UI.Xaml.Controls.NavigationViewPaneDisplayMode.Top)
             {
                 AppTitleBar.Margin = new Thickness(topIndent, currMargin.Top, currMargin.Right, currMargin.Bottom);
@@ -118,27 +101,22 @@ namespace Oscillator
 
         private void UpdateTitleBarLayout(CoreApplicationViewTitleBar coreTitleBar)
         {
-            // Update title bar control size as needed to account for system size changes.
             AppTitleBar.Height = coreTitleBar.Height;
 
-            // Ensure the custom title bar does not overlap window caption controls
             Thickness currMargin = AppTitleBar.Margin;
             AppTitleBar.Margin = new Thickness(currMargin.Left, currMargin.Top, coreTitleBar.SystemOverlayRightInset, currMargin.Bottom);
         }
 
         private void NavigationView_SelectionChanged(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewSelectionChangedEventArgs args)
         {
-            
-            var selectedItem = (Microsoft.UI.Xaml.Controls.NavigationViewItem)args.SelectedItem;
+            var selectedItem = (muxc.NavigationViewItem)args.SelectedItem;
             string selectedItemTag = ((string)selectedItem.Tag);
-            
-            string pageName = "Oscillator." + selectedItemTag;
+
+            string pageName = "Oscillator."+ selectedItemTag;
             Type pageType = Type.GetType(pageName);
             contentFrame.Navigate(pageType);
-            
+            nvView.Header = selectedItem.Content.ToString(); ;
         }
-
-        
     }
 }
 

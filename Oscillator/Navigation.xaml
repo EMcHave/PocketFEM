@@ -42,16 +42,24 @@
 
         <muxc:NavigationView 
             x:Name="nvView"
-            IsBackButtonVisible="Auto"
+            IsBackButtonVisible="Collapsed"
+            IsBackEnabled="False"
             SelectionChanged="NavigationView_SelectionChanged"
-            Margin="0,-1,0,0">
+            Margin="0,-1,0,0"
+            PaneDisplayMode="Auto"
+            AlwaysShowHeader="True"
+            Header=" "
+            DisplayModeChanged="NavigationViewControl_DisplayModeChanged">
+            
             <muxc:NavigationView.MenuItems>
                 <muxc:NavigationViewItem Icon="Home" Content="Свободные колебания" Tag="Page1" />
                 <muxc:NavigationViewItem Icon="Play" Content="Вынужденные колебания" Tag="Page2" />
                 <muxc:NavigationViewItem Icon="Map" Content="Нелинейное трение" Tag="BlankPage1" />
+                <muxc:NavigationViewItem Icon="XboxOneConsole" Content="FEM" Tag="FEM"/>
             </muxc:NavigationView.MenuItems>
 
-            <Frame x:Name="contentFrame"/>
+            <Frame x:Name="contentFrame" 
+                   Padding="12, 0, 12, 24"/>
         </muxc:NavigationView>
     </Grid>
 

@@ -204,6 +204,8 @@ namespace Oscillator
             animCanvas = null;
             phaseCanvas.RemoveFromVisualTree();
             phaseCanvas = null;
+            coordCanvas.RemoveFromVisualTree();
+            coordCanvas = null;
         }
     }
 }

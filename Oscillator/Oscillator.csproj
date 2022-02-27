@@ -12,7 +12,7 @@
     <DefaultLanguage>ru-RU</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.19041.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -129,18 +129,22 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Model\IFEMSolver.cs" />
+    <Compile Include="Pages\femPage.xaml.cs">
+      <DependentUpon>FEM.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Model\NonLinearFriction.cs" />
-    <Compile Include="NlnFriction.xaml.cs">
+    <Compile Include="Pages\NlnFriction.xaml.cs">
       <DependentUpon>NlnFriction.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\PlotClass.cs" />
     <Compile Include="Navigation.xaml.cs">
       <DependentUpon>Navigation.xaml</DependentUpon>
     </Compile>
-    <Compile Include="StdOscillations.xaml.cs">
+    <Compile Include="Pages\StdOscillations.xaml.cs">
       <DependentUpon>StdOscillations.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PwdOscillations.xaml.cs">
+    <Compile Include="Pages\PwdOscillations.xaml.cs">
       <DependentUpon>PwdOscillations.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\PoweredOscillationSystem.cs" />
@@ -213,7 +217,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="NlnFriction.xaml">
+    <Page Include="Pages\FEM.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\NlnFriction.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -221,11 +229,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="StdOscillations.xaml">
+    <Page Include="Pages\StdOscillations.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PwdOscillations.xaml">
+    <Page Include="Pages\PwdOscillations.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,14 +1,14 @@
 ﻿<Page
-    x:Class="Oscillator.Page1"
-    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    x:Class="Oscillator.Page2"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Oscillator"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:oxy="using:OxyPlot.Windows"
-      
     mc:Ignorable="d">
+
     <Page.Resources>
         <Storyboard x:Name="storyboard1">
             <DoubleAnimationUsingKeyFrames x:Name="rectAnimation"
@@ -44,10 +44,8 @@
         </Storyboard>
     </Page.Resources>
 
-
-
     <StackPanel>
-        <Pivot Title="Модель колебательной системы с двумя степенями свободы">
+        <Pivot Padding="36,16,36,0">
             <Pivot.DataContext>
                 <local:PlotClass x:Name="plot"/>
             </Pivot.DataContext>
@@ -55,14 +53,13 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto" MinHeight="375"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-
-                    <Canvas x:Name="Canvas" Grid.Row ="1" Background="{ThemeResource SystemChromeBlackLowColor}" Margin="20,23,20,13" MinWidth="500" >
+                    <Canvas x:Name="Canvas" Grid.Row ="1" Background="{ThemeResource SystemChromeBlackLowColor}" Margin="20,20,20,11" Height="350" MinWidth="500" >
 
 
                         <Line X1="50" Y1="220"  X2="50" Y2="320" Stroke="White" StrokeThickness="4"/>
@@ -85,7 +82,7 @@
 
                     </Canvas>
                     <TextBlock HorizontalAlignment="Left" Margin="20,15,0,5" Grid.Row="2" TextWrapping="Wrap" FontSize="18" Width="425"><Run Text="Введите пара"/><Run Text="метры системы"/></TextBlock>
-                    <StackPanel Grid.Row="3" Margin="30,30,0,0" Orientation="Vertical" RenderTransformOrigin="0.497,0.506" HorizontalAlignment="Left" Width="100" Height="208" VerticalAlignment="Top">
+                    <StackPanel Grid.Row="3" Margin="30,30,70,0" Orientation="Vertical" RenderTransformOrigin="0.497,0.506" HorizontalAlignment="Left" Width="100" Height="208" VerticalAlignment="Top">
                         <TextBlock Text="Жесткость 1" TextWrapping="Wrap" Height="30" Width="84" HorizontalAlignment="Left"/>
                         <muxc:NumberBox x:Name="c1Field" Margin="0,0,0,10" Value="{x:Bind system.c1, Mode=TwoWay}"/>
                         <TextBlock TextWrapping="Wrap" Text="Жесткость 2" Height="30" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
@@ -93,18 +90,22 @@
                         <TextBlock Text="Жесткость 3" TextWrapping="Wrap" Height="30"/>
                         <muxc:NumberBox x:Name="c3Field" Value="{x:Bind system.c3, Mode=TwoWay}"/>
                     </StackPanel>
-                    <StackPanel Grid.Row="3" Margin="201,30,0,0" Width="100" HorizontalAlignment="Left" Height="135" VerticalAlignment="Top">
+                    <StackPanel Grid.Row="3" Margin="200,30,70,0" Width="110" HorizontalAlignment="Left" Height="207" VerticalAlignment="Top">
                         <TextBlock TextWrapping="Wrap" Height="30"><Run Text="Масса "/><Run Text="стержня"/><LineBreak/><Run/></TextBlock>
                         <muxc:NumberBox x:Name="m1Field" Margin="0,0,0,10" Value="{x:Bind system.m1, Mode=TwoWay}"/>
                         <TextBlock Text="Масса блока" TextWrapping="Wrap" Height="30"/>
-                        <muxc:NumberBox x:Name="m2Field" Value="{x:Bind system.m2, Mode=TwoWay}"/>
+                        <muxc:NumberBox x:Name="m2Field" Value="{x:Bind system.m2, Mode=TwoWay}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Амплитуда силы" TextWrapping="Wrap" Height="30"/>
+                        <muxc:NumberBox x:Name="P0field" Value="{x:Bind system.P0, Mode=TwoWay}"/>
                     </StackPanel>
-                    <StackPanel Grid.Row="3" Margin="370,30,0,0" HorizontalAlignment="Left" Width="150" Height="157" VerticalAlignment="Top">
+                    <StackPanel Grid.Row="3" Margin="385,30,0,0" HorizontalAlignment="Left" Width="149" Height="207" VerticalAlignment="Top">
                         <TextBlock Text="Время моделирования" TextWrapping="Wrap" Height="30"/>
                         <muxc:NumberBox x:Name="timeField" Margin="0,0,0,15" Value="{x:Bind system.time, Mode=TwoWay}"/>
-                        <Button x:Name="startButton" Content="Start!" Width="149" Height="57" HorizontalAlignment="Stretch" Click="startButton_Click"/>
+                        <Button x:Name="startButton" Content="Start!" Width="149" Height="57" HorizontalAlignment="Stretch" Click="startButton_Click" Margin="0,0,0,10"/>
+                        <TextBlock Text="Частота силы" TextWrapping="Wrap" Height="30"/>
+                        <muxc:NumberBox x:Name="pField" Value="{x:Bind system.p, Mode=TwoWay}"/>
                     </StackPanel>
-                    <TextBlock HorizontalAlignment="Left" Margin="20,25,0,0" Grid.Row="4" TextWrapping="Wrap" VerticalAlignment="Top" Text="Введите начальные условия" FontSize="18" Height="24" Width="232"/>
+                    <TextBlock HorizontalAlignment="Left" Margin="20,25,0,0" Grid.Row="4" TextWrapping="Wrap" VerticalAlignment="Top" Text="Введите начальные условия" FontSize="18"/>
                     <StackPanel Grid.Row="5" Margin="25,23,0,0" Orientation="Horizontal" Height="32" VerticalAlignment="Top" HorizontalAlignment="Left" Width="760">
                         <TextBlock Text="X0" TextWrapping="Wrap" Margin="0,5,10,0" Height="28" VerticalAlignment="Top"/>
                         <muxc:NumberBox Margin="0,0,30,0" Value="{x:Bind system.x0, Mode=TwoWay}"/>
@@ -117,9 +118,10 @@
                     </StackPanel>
                 </Grid>
             </PivotItem>
-            <PivotItem Header="График" Margin="12,0,12,0">
+            <PivotItem Header="График">
                 <oxy:PlotView Model="{x:Bind plot.MyModel}"/>
             </PivotItem>
         </Pivot>
     </StackPanel>
+    
 </Page>
