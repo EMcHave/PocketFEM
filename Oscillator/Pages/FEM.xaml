@@ -16,83 +16,181 @@
         </CommandBar>
     </Page.BottomAppBar>
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="480"/>
+            <ColumnDefinition Width="*" MinWidth="900"/>
+        </Grid.ColumnDefinitions>
         <ScrollViewer
+                Grid.Column="0"
                 VerticalScrollMode="Enabled"
                 IsVerticalScrollChainingEnabled="True"
-                VerticalScrollBarVisibility="Auto"
-                Padding="36,16,36,0"
+                VerticalScrollBarVisibility="Hidden"
+                Padding="30,16,36,0"
                 FontSize="14">
-            <StackPanel>
-                <Border
-                        Background="{ThemeResource LayerFillColorDefaultBrush}"
-                        Margin="10"
-                        VerticalAlignment="Top" 
-                        HorizontalAlignment="Left" 
-                        CornerRadius="8"
-                        BorderThickness="1"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="800">
-                    <StackPanel Orientation="Horizontal">
-                        <canvas:CanvasControl 
-                                x:Name ="damCanvas" 
-                                Height="400" Width="700"
-                                HorizontalAlignment="Left">
-                        </canvas:CanvasControl>
-                    </StackPanel>
-                </Border>
-                <StackPanel Orientation="Horizontal" Margin="15,10,10,10">
-                    <muxc:RadioButtons Header="Задача">
-                        <RadioButton Content="Модельная"/>
-                        <RadioButton Content="Пользовательская"/>
+            <StackPanel Width="411" Height="1427" Padding="0,0,0,0" Margin="0,0,0,4">
+
+                <StackPanel Orientation="Vertical" Margin="15,10,10,10">
+                    <muxc:RadioButtons x:Name="TaskChoice" Header="Задача">
+                        <RadioButton x:Name="ModelTaskCheck" Content="Модельная"/>
+                        <RadioButton x:Name="UserTaskCheck" Content="Пользовательская" Checked="UserTaskCheck_Checked"/>
                     </muxc:RadioButtons>
+                    <ToggleButton x:Name="LoadGeometryButton" Content="Загрузить геометрию" Margin="0,10,0,0" Checked="LoadGeometryButton_Checked" Unchecked="LoadGeometryButton_Unchecked"/>
                 </StackPanel>
                 <Border
                         Background="{ThemeResource LayerFillColorDefaultBrush}"
-                        Margin="10"
-                        VerticalAlignment="Top" 
+                        Margin="10" 
                         HorizontalAlignment="Left" 
                         CornerRadius="8"
                         BorderThickness="1"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="800" Height="320">
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="385" Height="424">
                     <StackPanel>
-                        <TextBlock Text="Параметры:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
+                        <TextBlock Text="Силы:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
                         <StackPanel Orientation="Horizontal" Margin="15,10,0,0" >
-                            <StackPanel Orientation="Vertical" >
-                                <TextBlock Text="Типы сил:" Margin="0,0,0,10"/>
-                                <CheckBox Content="Поверхностные" Margin="0,0,0,5"/>
-                                <CheckBox Content="Объемные" Margin="0,0,0,5"/>
-                                <CheckBox Content="Сосредоточенные" Margin="0,0,0,5"/>
-                            </StackPanel>
-                            <StackPanel Margin="50,0,0,0">
-                                <TextBlock Text="Рассчетные величины:" Margin="0,0,0,10"/>
-                                <CheckBox Content="Перемещения" Margin="0,0,0,5" IsChecked="True" IsEnabled="False"/>
-                                <CheckBox Content="Напряжения" Margin="0,0,0,5"/>
-                                <CheckBox Content="Деформации" Margin="0,0,0,5"/>
-                            </StackPanel>
-                            <StackPanel Margin="50, 0, 0, 0">
-                                <ToggleButton Content="Загрузить входной файл" Height="56" Width="182" Margin="0,0,0,10"/>
-                                <Button Content="Выполнить расчет" Height="70" Width="182" IsEnabled="False"/>
+                            <StackPanel Orientation="Vertical" Width="354" >
+                                <CheckBox x:Name="ConcForceCheck" Content="Сосредоточенные" Margin="0,0,0,5"/>
+                                <StackPanel Orientation="Horizontal" Width="363">
+                                    <muxc:NumberBox x:Name="CFnodeField" PlaceholderText="Узел" Width="68"/>
+                                    <muxc:NumberBox x:Name="CFFxField" PlaceholderText="Fx" Margin="10,0,0,0" Width="71"/>
+                                    <muxc:NumberBox x:Name="CFFyField" PlaceholderText="Fy" Margin="10,0,0,0" Width="71"/>
+                                    <Button x:Name="AddConcForceButton" Width="67" Margin="10,0,0,0" Click="AddConcForceButton_Click"  >
+                                        <Button.Content>
+                                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
+                                        </Button.Content>
+                                    </Button>
+                                </StackPanel>
+
+                                <CheckBox x:Name="SurfForceCheck" Content="Поверхностные" Margin="0,15,0,5"/>
+                                <TextBox  x:Name="SurfForceNodesField" PlaceholderText="Перечислите нагруженные узлы" Width="307" HorizontalAlignment="Left" TextChanged="SurfForceNodesField_TextChanged"/>
+                                <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                    <TextBlock Text="Давление:" Margin="0,5,0,0"/>
+                                    <muxc:NumberBox x:Name="PressureField" PlaceholderText="Па" Margin="65,0,0,0" Width="176"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <TextBlock Text="Нормаль:" Margin="0,5,0,0"/>
+                                    <muxc:NumberBox x:Name="SurfForceFxField" PlaceholderText="Fx" Margin="70,0,0,0" Width="84"/>
+                                    <muxc:NumberBox x:Name="SurfForceFyField" PlaceholderText="Fy" Margin="10,0,0,0" Width="82"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                    <TextBlock Text="Коэффициенты:" Margin="0,5,0,0"/>
+                                    <muxc:NumberBox x:Name="SurfForceMult1Field" Value="1" PlaceholderText="C1" SmallChange="0" LargeChange="1" Margin="30,0,0,0" Width="84"/>
+                                    <muxc:NumberBox x:Name="SurfForceMult2Field" Value="1" PlaceholderText="C2" SmallChange="0" LargeChange="1" Margin="10,0,0,0" Width="82"/>
+                                </StackPanel>
+                                <Button x:Name="AddSurfForceButton" Margin="0,10,0,0" Width="307" Click="AddSurfForceButton_Click">
+                                    <Button.Content>
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
+                                    </Button.Content>
+                                </Button>
+
+                                <CheckBox Name="GravityCheck" Content="Гравитация" Margin="0,15,0,5"/>
                             </StackPanel>
                         </StackPanel>
-                        <StackPanel Margin="15,10,0,10">
-                            <TextBlock Text="Параметры материала:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="0,0,0,15" ></TextBlock>
-                            <ComboBox Margin="0,0,0,5">
+
+                    </StackPanel>
+                </Border>
+                <Border
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        Margin="10" 
+                        HorizontalAlignment="Left" 
+                        CornerRadius="8"
+                        BorderThickness="1"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="385" Height="318">
+                    <StackPanel>
+                        <TextBlock Text="Граничные условия:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
+                        <StackPanel Orientation="Vertical" Margin="15,10,0,0" >
+                            <CheckBox x:Name="ConstraintsCheck" Content="Закрепления" Margin="0,15,0,5" IsChecked="True" IsEnabled="False"/>
+                            <TextBox  x:Name="ConstrainedNodesField" PlaceholderText="Закрепленные узлы" Width="307" HorizontalAlignment="Left"/>
+                            <StackPanel Orientation="Horizontal" Padding="0,13,0,0">
+                                <CheckBox Content="X" Width="30"/>
+                                <CheckBox Content="Y" Width="101"/>
+                                <Button Width="67">
+                                    <Button.Content>
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
+                                    </Button.Content>
+                                </Button>
+                            </StackPanel>
+                            <CheckBox x:Name="DisplacementsCheck" Content="Смещения" Margin="0,15,0,5"/>
+                            <TextBox  x:Name="DisplacedNodesField" PlaceholderText="Закрепленные узлы" Width="307" HorizontalAlignment="Left"/>
+                            <StackPanel Orientation="Horizontal" Width="363" Padding="-3,10,0,0">
+                                <muxc:NumberBox x:Name="UXField" PlaceholderText="UX, м" Margin="0,0,0,0" Width="111"/>
+                                <muxc:NumberBox x:Name="UYField" PlaceholderText="UY, м" Margin="10,0,0,0" Width="109"/>
+                                <Button x:Name="AddDisplacementButton" Width="67" Margin="10,0,0,0" Click="AddConcForceButton_Click"  >
+                                    <Button.Content>
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
+                                    </Button.Content>
+                                </Button>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border 
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        Margin="10,10,10,0" 
+                        HorizontalAlignment="Left" 
+                        CornerRadius="8"
+                        BorderThickness="1"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="385" Height="298">
+                    <StackPanel Orientation="Vertical" Padding="15,10,0,0">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Материал:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="1,5,0,0"/>
+                            <ComboBox x:Name="MaterialChoice" Margin="0,15,0,5" PlaceholderText="Выберите материал">
                                 <ComboBoxItem Content="Сталь"/>
                                 <ComboBoxItem Content="Алюминий"/>
                                 <ComboBoxItem Content="Бетон"/>
                                 <ComboBoxItem Content="Пользовательский материал"/>
                             </ComboBox>
-                            <StackPanel Orientation="Horizontal" Height="32">
-                                <TextBlock Text="Модуль Юнга" Margin="0,5,10,0"/>
-                                <muxc:NumberBox PlaceholderText="ГПа" IsEnabled="False"/>
-                                <TextBlock Text="Коэффициент Пуассона" Margin="50,5,10,0"/>
-                                <muxc:NumberBox PlaceholderText="" IsEnabled="False"/>
-                            </StackPanel>
                         </StackPanel>
-                        
 
+
+                        <TextBlock Text="Пользовательский материал:" FontSize="16" Margin="0,5,0,0"/>
+                        <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                            <TextBlock Text="Модуль Юнга:" Margin="0,5,0,0"/>
+                            <muxc:NumberBox x:Name="EField" PlaceholderText="ГПа" Margin="73,0,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Padding="0,5,0,0">
+                            <TextBlock Text="Коэффициент Пуассона:" Margin="0,5,0,0"/>
+                            <muxc:NumberBox x:Name="nuField" PlaceholderText="" Margin="10,0,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Padding="0,5,0,0">
+                            <TextBlock Text="Плотность:" Margin="0,5,0,0"/>
+                            <muxc:NumberBox x:Name="roField" PlaceholderText="кг/м^3" Margin="95,0,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Padding="0,20,0,0">
+                            <TextBlock Text="Толщина тела:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="1,2,0,0"/>
+                            <muxc:NumberBox PlaceholderText="м" Width="63" Margin="45,0,0,0"/>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
+                <Border 
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        Margin="10,20,10,0" 
+                        HorizontalAlignment="Left" 
+                        CornerRadius="8"
+                        BorderThickness="1"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="385" Height="155" Padding="0,0,0,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Padding="15,10,0,0">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text= "Расчетные величины:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="1,5,0,0"/>
+                                <CheckBox x:Name="DispsCheck" Content="Перемещения" IsChecked="True" IsEnabled="False" Margin="0,5,0,0"/>
+                                <CheckBox x:Name="StrainsCheck" Content="Деформации"/>
+                                <CheckBox x:Name="StressesCheck" Content="Напряжения"/>
+                            </StackPanel>
+                            <Button x:Name="EvaluateButton" Content="Рассчитать" Height="90" Margin="02,30,0,0" Width="171" Click="EvaluateButton_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+            </Border>
             </StackPanel>
         </ScrollViewer>
+        <Border
+                        Grid.Column="1"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        Margin="15,10,20,0" 
+                        CornerRadius="8"
+                        BorderThickness="1"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+
+            <Canvas Margin="36,0,36,0"/>
+        </Border>
     </Grid>
 </Page>

@@ -59,7 +59,7 @@
             </muxc:NavigationView.MenuItems>
 
             <Frame x:Name="contentFrame" 
-                   Padding="12, 0, 12, 24"/>
+                   Padding="12, 0, 12, 0"/>
         </muxc:NavigationView>
     </Grid>
 
