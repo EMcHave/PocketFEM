@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.Data.Text;
 
 namespace Oscillator
 {
@@ -27,19 +28,19 @@ namespace Oscillator
         public FEMplane(Windows.Storage.StorageFile file)
         {
             readInputFile(file);
-            StiffnessGlobal = Matrix<double>.Build.Sparse(2 * nodes.Count(), 2 * nodes.Count());
-            ForcesVector = Vector<double>.Build.Sparse(2 * nodes.Count());
         }
 
         public Vector<double> displacements { get; set; } 
         private Vector<double> strains { get; set; } 
         private Vector<double> stresses { get; set; } 
 
-        public void Solve(IMaterial material,
-                        bool cf, bool sf, bool gf, ref List<CForce> concentratedForces,
-                        ref List<SForce> surfaceForces,
+        public async void Solve(IMaterial material, List<Constraint> constraints,
+                        bool cf, bool sf, bool gf, List<CForce> concentratedForces,
+                        List<SForce> surfaceForces,
                         bool calculateStrains, bool calculateStresses)
         {
+            StiffnessGlobal = Matrix<double>.Build.Sparse(2 * nodes.Count(), 2 * nodes.Count());
+            ForcesVector = Vector<double>.Build.Sparse(2 * nodes.Count());
             this.thickness = 1;
             this.material = material;
             Dmatrix = material.E / (1 - Math.Pow(material.V, 2)) * Matrix<double>.Build.DenseOfArray(
@@ -49,6 +50,7 @@ namespace Oscillator
                     {material.V, 1, 0},
                     {0,0, (1-material.V)/2 }
                 });
+            this.constraints = constraints;
             this.concentratedForces = concentratedForces;
             this.surfaceForces = surfaceForces;
             buildForcesVector(cf, sf, gf);
@@ -56,6 +58,7 @@ namespace Oscillator
             applyConstraints();
 
             displacements = StiffnessGlobal.Solve(ForcesVector);
+            double isZero = displacements[9];
         }
 
         private void applyConstraints()
@@ -114,48 +117,7 @@ namespace Oscillator
                         nodes[int.Parse(numbers[3]) - 1],
                         int.Parse(numbers[0]) - 1));
                 }
-            }
-
-
-            ///////////////////////////////////////////////////////
-            /*
-            List<int> loadedNodesNumbers = new List<int>()
-            { 4, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 3};
-            List<int> constrainedNodesNumbers = new List<int>()
-            { 4, 23, 24, 5, 28, 27, 26, 25, 6 };
-            List<Node> loadedNodes = new List<Node>();
-
-            foreach (int N in loadedNodesNumbers)
-                loadedNodes.Add(nodes[N-1]);
-
-
-            surfaceForces.Add(new SForce()
-            {
-                nodes = loadedNodes,
-                StartEndMultiplier = new double[2] { 1, 1 },
-                Fx = 100000,
-                Fy = 0
-            });
-            concentratedForces.Add(new CForce()
-            {
-                nodeId = 1,
-                Fx = 100000,
-                Fy = -30000,
-            });
-
-            foreach (int N in constrainedNodesNumbers)
-            {
-                constraints.Add(new Constraint()
-                {
-                    nodeId = N - 1,
-                    isXfixed = true,
-                    isYfixed = true,
-                });
-            }
-            */
-            /////////////////////////////////////////////////////
-
-            
+            }            
         }
         private void buildStiffnessMatrix()
         {

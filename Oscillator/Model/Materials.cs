@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Oscillator
 {
-    struct Steel : IMaterial 
+    class Steel : IMaterial 
     {
         public double E { get { return 2 * Math.Pow(10, 11); } }
         public double V { get { return 0.25; } }
@@ -14,7 +14,7 @@ namespace Oscillator
         public double ro { get { return 7700; } }
     }
 
-    struct Aluminium : IMaterial
+    class Aluminium : IMaterial
     {
         public double E { get { return 7 * Math.Pow(10, 10); } }
         public double V { get { return 0.34; } }
@@ -22,7 +22,7 @@ namespace Oscillator
         public double ro { get { return 2700; } }
     }
 
-    struct Concrete : IMaterial
+    class Concrete : IMaterial
     {
         public double E { get { return 2.4 * Math.Pow(10, 10); } }
         public double V { get { return 0.2; } }
@@ -30,9 +30,9 @@ namespace Oscillator
         public double ro { get { return 2400; } }
     }
 
-    struct UserMaterial : IMaterial
+    class UserMaterial : IMaterial
     {
-        public double E { get; set; } 
+        public double E { get; set; }
         public double V { get; set; }
 
         public double ro { get; set; }

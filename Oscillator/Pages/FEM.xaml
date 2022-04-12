@@ -52,7 +52,7 @@
                                     <muxc:NumberBox x:Name="CFnodeField" PlaceholderText="Узел" Width="68"/>
                                     <muxc:NumberBox x:Name="CFFxField" PlaceholderText="Fx" Margin="10,0,0,0" Width="71"/>
                                     <muxc:NumberBox x:Name="CFFyField" PlaceholderText="Fy" Margin="10,0,0,0" Width="71"/>
-                                    <Button x:Name="AddConcForceButton" Width="67" Margin="10,0,0,0" Click="AddConcForceButton_Click"  >
+                                    <Button x:Name="AddConcForceButton" IsEnabled="False" Width="67" Margin="10,0,0,0" Click="AddConcForceButton_Click"  >
                                         <Button.Content>
                                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
                                         </Button.Content>
@@ -75,7 +75,7 @@
                                     <muxc:NumberBox x:Name="SurfForceMult1Field" Value="1" PlaceholderText="C1" SmallChange="0" LargeChange="1" Margin="30,0,0,0" Width="84"/>
                                     <muxc:NumberBox x:Name="SurfForceMult2Field" Value="1" PlaceholderText="C2" SmallChange="0" LargeChange="1" Margin="10,0,0,0" Width="82"/>
                                 </StackPanel>
-                                <Button x:Name="AddSurfForceButton" Margin="0,10,0,0" Width="307" Click="AddSurfForceButton_Click">
+                                <Button IsEnabled="False" x:Name="AddSurfForceButton" Margin="0,10,0,0" Width="307" Click="AddSurfForceButton_Click">
                                     <Button.Content>
                                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
                                     </Button.Content>
@@ -100,9 +100,9 @@
                             <CheckBox x:Name="ConstraintsCheck" Content="Закрепления" Margin="0,15,0,5" IsChecked="True" IsEnabled="False"/>
                             <TextBox  x:Name="ConstrainedNodesField" PlaceholderText="Закрепленные узлы" Width="307" HorizontalAlignment="Left"/>
                             <StackPanel Orientation="Horizontal" Padding="0,13,0,0">
-                                <CheckBox Content="X" Width="30"/>
-                                <CheckBox Content="Y" Width="101"/>
-                                <Button Width="67">
+                                <CheckBox x:Name="isXConstrained" Content="X" Width="30"/>
+                                <CheckBox x:Name="isYConstrained" Content="Y" Width="101"/>
+                                <Button x:Name="AddConstraintButton" IsEnabled="False" Width="67" Click="AddConstraintButton_Click">
                                     <Button.Content>
                                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
                                     </Button.Content>
@@ -113,7 +113,7 @@
                             <StackPanel Orientation="Horizontal" Width="363" Padding="-3,10,0,0">
                                 <muxc:NumberBox x:Name="UXField" PlaceholderText="UX, м" Margin="0,0,0,0" Width="111"/>
                                 <muxc:NumberBox x:Name="UYField" PlaceholderText="UY, м" Margin="10,0,0,0" Width="109"/>
-                                <Button x:Name="AddDisplacementButton" Width="67" Margin="10,0,0,0" Click="AddConcForceButton_Click"  >
+                                <Button IsEnabled="False" x:Name="AddDisplacementButton" Width="67" Margin="10,0,0,0" Click="AddConcForceButton_Click"  >
                                     <Button.Content>
                                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
                                     </Button.Content>
@@ -133,7 +133,7 @@
                     <StackPanel Orientation="Vertical" Padding="15,10,0,0">
                         <StackPanel Orientation="Vertical">
                             <TextBlock Text="Материал:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="1,5,0,0"/>
-                            <ComboBox x:Name="MaterialChoice" Margin="0,15,0,5" PlaceholderText="Выберите материал">
+                            <ComboBox x:Name="MaterialChoice" Margin="0,15,0,5" PlaceholderText="Выберите материал" SelectionChanged="MaterialChoice_SelectionChanged" >
                                 <ComboBoxItem Content="Сталь"/>
                                 <ComboBoxItem Content="Алюминий"/>
                                 <ComboBoxItem Content="Бетон"/>
@@ -176,7 +176,7 @@
                                 <CheckBox x:Name="StrainsCheck" Content="Деформации"/>
                                 <CheckBox x:Name="StressesCheck" Content="Напряжения"/>
                             </StackPanel>
-                            <Button x:Name="EvaluateButton" Content="Рассчитать" Height="90" Margin="02,30,0,0" Width="171" Click="EvaluateButton_Click"/>
+                            <Button x:Name="EvaluateButton" IsEnabled="False" Content="Рассчитать" Height="90" Margin="02,30,0,0" Width="171" Click="EvaluateButton_Click"/>
                         </StackPanel>
                     </StackPanel>
             </Border>
