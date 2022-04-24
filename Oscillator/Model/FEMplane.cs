@@ -6,10 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.Data.Text;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Oscillator
 {
-    internal class FEMplane 
+    internal class FEMplane : INotifyPropertyChanged
     {
         
         private Matrix<double>? StiffnessGlobal;
@@ -25,9 +27,8 @@ namespace Oscillator
         public double thickness;
         public List<Node>? nodes { get; private set; }
         public List<Element>? elements { get; private set; }
-        public FEMplane(Windows.Storage.StorageFile file)
-        {
-            readInputFile(file);
+        public FEMplane()
+        {   
         }
 
         public Vector<double> displacements { get; set; } 
@@ -39,6 +40,7 @@ namespace Oscillator
                         List<SForce> surfaceForces,
                         bool calculateStrains, bool calculateStresses)
         {
+            
             StiffnessGlobal = Matrix<double>.Build.Sparse(2 * nodes.Count(), 2 * nodes.Count());
             ForcesVector = Vector<double>.Build.Sparse(2 * nodes.Count());
             this.thickness = 1;
@@ -56,9 +58,17 @@ namespace Oscillator
             buildForcesVector(cf, sf, gf);
             buildStiffnessMatrix();
             applyConstraints();
+            
 
             displacements = StiffnessGlobal.Solve(ForcesVector);
-            double isZero = displacements[9];
+            
+            if (calculateStrains)
+                computeStrains();
+            if (calculateStresses)
+                computeStresses(calculateStrains);
+
+            updateGeometry();
+
         }
 
         private void applyConstraints()
@@ -82,7 +92,13 @@ namespace Oscillator
 
             
         }
-        private async void readInputFile(Windows.Storage.StorageFile file)
+
+        public delegate void Draw(object sender, DrawEventArgs e);
+        public event Draw drawEvent;
+
+        
+
+        public async void readInputFile(Windows.Storage.StorageFile file)
         {
             nodes = new List<Node>();
             elements = new List<Element>();
@@ -117,7 +133,8 @@ namespace Oscillator
                         nodes[int.Parse(numbers[3]) - 1],
                         int.Parse(numbers[0]) - 1));
                 }
-            }            
+            }
+            drawEvent(this, new DrawEventArgs { whatToDraw = "Перемещения" });
         }
         private void buildStiffnessMatrix()
         {
@@ -187,15 +204,69 @@ namespace Oscillator
 
             ForcesVector = concForces + surfForces + gForces;
 
+            
+
         }
-        /*
-        public Vector<double> computeStrains(Vector<double>? stresses)
+        private double defcoef = 1000;
+        public double DefCoef
         {
-            //расчет деформаций при необходимости
+            get { return defcoef; }
+            set
+            {
+                defcoef = value;
+                OnPropertyChanged("DefCoef");
+            }
         }
-        public Vector<double> computeStresses(Vector<double>? strains)
+        private void updateGeometry()
         {
-            //расчет напряжений при необходимости
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                nodes[i].x +=  DefCoef*displacements[2 * i];
+                nodes[i].y +=  DefCoef*displacements[2 * i + 1];
+            }
+
+            drawEvent(this, new DrawEventArgs { whatToDraw = "Перемещения" });
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        
+        public void computeStrains()
+        { 
+            foreach (var el in elements)
+            {
+                Matrix<double> B = el.GenerateBMatrix();
+                List<double> uList = new List<double>();
+
+                for (int i = 0; i < el.nodes.Count; i++)
+                {
+                    uList.Add(displacements[2 * el.nodesIDs[i]]);
+                    uList.Add(displacements[2 * el.nodesIDs[i] + 1]);
+                }
+                Vector<double> U = Vector<double>.Build.DenseOfEnumerable(uList);
+
+                Vector<double> localStrains = B * U;
+                el.strains = localStrains;
+            }
+
+        }
+        public void computeStresses(bool strainsCalculated)
+        {
+            if(strainsCalculated)
+                foreach (var el in elements)
+                    el.stresses = Dmatrix * el.strains;
+            else
+            {
+                computeStrains();
+                foreach (var el in elements)
+                    el.stresses = Dmatrix * el.strains;
+            }
         }
 
 
@@ -203,6 +274,12 @@ namespace Oscillator
         {
             //генерация VTK-файла
         }
-        */
+        
     }
+}
+
+
+class DrawEventArgs : EventArgs
+{
+    public string whatToDraw { get; set; }
 }

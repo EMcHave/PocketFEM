@@ -13,6 +13,9 @@ namespace Oscillator
         private Matrix<double> K_local { get; set; } //локальная матрица жесткости
         public List<int> nodesIDs { get; } //массив номеров узлов (для сборки глобальной матрицы жест)
         public List<Node> nodes { get; } //массив узлов, принадлежащих элементу
+
+        public Vector<double> strains;
+        public Vector<double> stresses;
         public double square 
         { get
             {
@@ -24,8 +27,29 @@ namespace Oscillator
         public void CalculateStiffnessMatrix(ref Matrix<double> K_global,
                                              ref Matrix<double> D)
         {
-            Matrix<double> B = Matrix<double>.Build.Dense(3, 6);
+            Matrix<double> B = GenerateBMatrix();
             Matrix<double> KLocal = Matrix<double>.Build.Dense(6, 6);
+            Matrix<double> C = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                {1, nodes[0].x, nodes[0].y},
+                {1, nodes[1].x, nodes[1].y},
+                {1, nodes[2].x, nodes[2].y }
+            });
+            KLocal = B.Transpose() * D * B * C.Determinant() / 2;
+            for(int i = 0; i < 3; i++)
+                for(int j = 0; j < 3; j++)
+                {
+                    K_global[2 * nodesIDs[i] + 0, 2 * nodesIDs[j] + 0] += KLocal[2 * i + 0, 2 * j + 0];
+                    K_global[2 * nodesIDs[i] + 0, 2 * nodesIDs[j] + 1] += KLocal[2 * i + 0, 2 * j + 1];
+                    K_global[2 * nodesIDs[i] + 1, 2 * nodesIDs[j] + 0] += KLocal[2 * i + 1, 2 * j + 0];
+                    K_global[2 * nodesIDs[i] + 1, 2 * nodesIDs[j] + 1] += KLocal[2 * i + 1, 2 * j + 1];
+                }
+        }
+
+        public Matrix<double> GenerateBMatrix()
+        {
+            Matrix<double> B = Matrix<double>.Build.Dense(3, 6);
+            
 
             Matrix<double> C = Matrix<double>.Build.DenseOfArray(new double[,]
             {
@@ -44,15 +68,8 @@ namespace Oscillator
                 B[2, 2 * i + 0] = CInverse[2, i];
                 B[2, 2 * i + 1] = CInverse[1, i];
             }
-            KLocal = B.Transpose() * D * B * C.Determinant() / 2;
-            for(int i = 0; i < 3; i++)
-                for(int j = 0; j < 3; j++)
-                {
-                    K_global[2 * nodesIDs[i] + 0, 2 * nodesIDs[j] + 0] += KLocal[2 * i + 0, 2 * j + 0];
-                    K_global[2 * nodesIDs[i] + 0, 2 * nodesIDs[j] + 1] += KLocal[2 * i + 0, 2 * j + 1];
-                    K_global[2 * nodesIDs[i] + 1, 2 * nodesIDs[j] + 0] += KLocal[2 * i + 1, 2 * j + 0];
-                    K_global[2 * nodesIDs[i] + 1, 2 * nodesIDs[j] + 1] += KLocal[2 * i + 1, 2 * j + 1];
-                }
+
+            return B;
         }
 
         public Element(Node n1, Node n2, Node n3, int Id)

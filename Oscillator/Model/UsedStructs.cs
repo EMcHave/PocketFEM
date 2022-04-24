@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Oscillator
 {
-    internal struct Node //описывает узел
+    internal class Node //описывает узел
     {
         public int id; //номер узла
         public double x;
@@ -20,14 +20,14 @@ namespace Oscillator
         public bool isYfixed; //по y
     }
 
-    internal struct CForce //сосредоточенная сила и ее координаты
+    internal struct CForce : IForce //сосредоточенная сила и ее координаты
     {
         public int nodeId; // к какому узлу приложена
         public double Fx;
         public double Fy;
     }
 
-    internal struct SForce //распределенная нагрузка
+    internal struct SForce : IForce //распределенная нагрузка
     {
         public List<Node> nodes;
         public double[] StartEndMultiplier;
@@ -77,4 +77,7 @@ namespace Oscillator
         double V { get; } //коэф пуассона
         double ro { get; } //плотность в кг/м^3
     }
+
+    interface IForce
+    { }
 }

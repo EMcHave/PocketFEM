@@ -18,7 +18,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="480"/>
-            <ColumnDefinition Width="*" MinWidth="900"/>
+            <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <ScrollViewer
                 Grid.Column="0"
@@ -179,18 +179,24 @@
                             <Button x:Name="EvaluateButton" IsEnabled="False" Content="Рассчитать" Height="90" Margin="02,30,0,0" Width="171" Click="EvaluateButton_Click"/>
                         </StackPanel>
                     </StackPanel>
-            </Border>
+                </Border>
             </StackPanel>
         </ScrollViewer>
-        <Border
-                        Grid.Column="1"
-                        Background="{ThemeResource LayerFillColorDefaultBrush}"
-                        Margin="15,10,20,0" 
-                        CornerRadius="8"
-                        BorderThickness="1"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
 
-            <Canvas Margin="36,0,36,0"/>
+        <StackPanel Orientation="Horizontal" Grid.Column="1" Height="36" VerticalAlignment="Top">
+            <muxc:NumberBox x:Name="deformField" Value="{x:Bind femplane.DefCoef, Mode=TwoWay}"  PlaceholderText="Коэффрицент деформации" Margin="15,0,0,0" VerticalAlignment="Center"/>
+            <ComboBox PlaceholderText="Силы" ItemsSource="{x:Bind forcesToDepict}" Margin="20,0,0,0" VerticalAlignment="Center"/>
+            <ComboBox x:Name="whatToDrawField" PlaceholderText="Отрисовать" ItemsSource="{x:Bind resultToDepict}" Margin="20,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" HorizontalContentAlignment="Right" SelectionChanged="ComboBox_SelectionChanged" SelectedIndex="0"/>
+        </StackPanel>
+        <Border
+                    Grid.Column="1"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    Margin="15,56,20,15" 
+                    CornerRadius="8"
+                    BorderThickness="1"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+
+            <Canvas x:Name="canvas" Margin="36,36,36,36" SizeChanged="canvas_SizeChanged"/>
         </Border>
     </Grid>
 </Page>
