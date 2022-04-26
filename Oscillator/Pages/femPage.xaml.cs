@@ -8,6 +8,8 @@ using Windows.UI.Xaml.Media;
 using MathNet.Spatial.Euclidean;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 
 
 
@@ -90,15 +92,20 @@ namespace Oscillator
             }
             if(currentMaterial != null && constraints.Any())
             {
-                femplane.Solve(currentMaterial, constraints,
+                StateType ct;
+                if (ConditionTypeBox.SelectedIndex == 0)
+                    ct = StateType.PlaneStress;
+                else
+                    ct = StateType.PlaneStrain;
+                femplane.Solve(currentMaterial, ct, constraints,
                            (bool)ConcForceCheck.IsChecked, (bool)SurfForceCheck.IsChecked, (bool)GravityCheck.IsChecked,
                            cforces, sforces, (bool)StrainsCheck.IsChecked, (bool)StressesCheck.IsChecked);
                 resultToDepict.Add("Перемещения");
                 if((bool)StrainsCheck.IsChecked)
                 {
-                    resultToDepict.Add("Деформации Е11");
-                    resultToDepict.Add("Деформации Е12");
-                    resultToDepict.Add("Деформации Е22");
+                    resultToDepict.Add("Деформации E11");
+                    resultToDepict.Add("Деформации E12");
+                    resultToDepict.Add("Деформации E22");
                 }
                 if ((bool)StressesCheck.IsChecked)
                 {
@@ -294,16 +301,15 @@ namespace Oscillator
                     foreach (var el in femplane.elements)
                         data.Add(el.strains[1]);
                     break;
-                case "Напряжения E11":
-                    data = new List<double>();
+                case "Напряжения S11":
                     foreach (var el in femplane.elements)
                         data.Add(el.stresses[0]);
                     break;
-                case "Напряжения E12":
+                case "Напряжения S12":
                     foreach (var el in femplane.elements)
                         data.Add(el.stresses[2]);
                     break;
-                case "Напряжения E22":
+                case "Напряжения S22":
                     foreach (var el in femplane.elements)
                         data.Add(el.stresses[1]);
                     break;
@@ -314,7 +320,6 @@ namespace Oscillator
             {
                 foreach (var el in femplane.elements)
                     drawPolygon(el, Windows.UI.Colors.SteelBlue, xmin, ymin, ymax, c1, c2);
-                
             }
             else
             {
@@ -322,20 +327,36 @@ namespace Oscillator
                 valmin = data.Min();
                 foreach (var el in femplane.elements)
                 {
-                    double value = (el.strains[1] + Math.Abs(valmin)) / (valmax + Math.Abs(valmin));
-
+                    double value = 1;
+                    switch (e.whatToDraw)
+                    {
+                        case "Деформации E11":
+                            value = (el.strains[0] + Math.Abs(valmin)) / (valmax + Math.Abs(valmin));
+                            break;
+                        case "Деформации E12":
+                            value = (el.strains[2] + Math.Abs(valmin)) / (valmax + Math.Abs(valmin));
+                            break;
+                        case "Деформации E22":
+                            value = (el.strains[1] + Math.Abs(valmin)) / (valmax + Math.Abs(valmin));
+                            break;
+                        case "Напряжения S11":
+                            value = (el.stresses[0] + Math.Abs(valmin)) / (valmax + Math.Abs(valmin));
+                            break;
+                        case "Напряжения S12":
+                            value = (el.stresses[2] + Math.Abs(valmin)) / (valmax + Math.Abs(valmin));
+                            break;
+                        case "Напряжения S22":
+                            value = (el.stresses[1] + Math.Abs(valmin)) / (valmax + Math.Abs(valmin));
+                            break;
+                    }
                     var color = Windows.UI.Color.FromArgb(255,
                         (byte)((value > 0.5 ? 2 * value - 1 : 0) * 255),
                         (byte)((value > 0.5 ? 2 - 2 * value : 2 * value) * 255),
                         (byte)((value > 0.5 ? 0 : (1 - 2 * value)) * 255));
-                    drawPolygon(el, Windows.UI.Colors.SteelBlue, xmin, ymin, ymax, c1, c2, value);
+                    drawPolygon(el, color, xmin, ymin, ymax, c1, c2, value);
                 }
                 
             }
-
-
-            /////////////////////////////////////////
-
 
             double x, y;
             foreach(var n in femplane.nodes)
@@ -382,6 +403,24 @@ namespace Oscillator
             element.Points = points;
             canvas.Children.Add(element);
             
+        }
+
+        private async void AppBarButton_Click(object sender, RoutedEventArgs e)
+        {
+            var savePicker = new FileSavePicker();
+            // место для сохранения по умолчанию
+            savePicker.SuggestedStartLocation = PickerLocationId.Downloads;
+            // устанавливаем типы файлов для сохранения
+            savePicker.FileTypeChoices.Add("Plain Text", new List<string>() { ".vtk" });
+            // устанавливаем имя нового файла по умолчанию
+            savePicker.SuggestedFileName = "TaskVTK";
+            savePicker.CommitButtonText = "Сохранить";
+
+            var new_file = await savePicker.PickSaveFileAsync();
+            if (new_file != null)
+            {
+                femplane.writeVTK(new_file, (bool)StrainsCheck.IsChecked, (bool)StressesCheck.IsChecked);
+            }
         }
     }
 }

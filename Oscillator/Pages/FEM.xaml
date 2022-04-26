@@ -11,8 +11,7 @@
     >
     <Page.BottomAppBar>
         <CommandBar ClosedDisplayMode="Compact">
-            <AppBarButton Icon="Save" Label="To VTK"/>
-            <AppBarButton Icon="OpenFile" Label="Save"/>
+            <AppBarButton Icon="Save" Label="To VTK" Click="AppBarButton_Click" />
         </CommandBar>
     </Page.BottomAppBar>
     <Grid>
@@ -30,10 +29,11 @@
             <StackPanel Width="411" Height="1427" Padding="0,0,0,0" Margin="0,0,0,4">
 
                 <StackPanel Orientation="Vertical" Margin="15,10,10,10">
-                    <muxc:RadioButtons x:Name="TaskChoice" Header="Задача">
-                        <RadioButton x:Name="ModelTaskCheck" Content="Модельная"/>
-                        <RadioButton x:Name="UserTaskCheck" Content="Пользовательская" Checked="UserTaskCheck_Checked"/>
-                    </muxc:RadioButtons>
+                    <TextBlock Text="Тип напряженного состояния" Style="{ ThemeResource BodyTextBlockStyle}"/>
+                    <ComboBox x:Name="ConditionTypeBox" SelectedIndex="0" Margin="0,10,0,0">
+                        <ComboBoxItem Content="Плоско-напряженное"/>
+                        <ComboBoxItem Content="Плоско-деформированное"/>
+                    </ComboBox>
                     <ToggleButton x:Name="LoadGeometryButton" Content="Загрузить геометрию" Margin="0,10,0,0" Checked="LoadGeometryButton_Checked" Unchecked="LoadGeometryButton_Unchecked"/>
                 </StackPanel>
                 <Border

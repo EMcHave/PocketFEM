@@ -78,6 +78,12 @@ namespace Oscillator
         double ro { get; } //плотность в кг/м^3
     }
 
+    enum StateType
+    {
+        PlaneStress,
+        PlaneStrain
+    };
+
     interface IForce
     { }
 }
