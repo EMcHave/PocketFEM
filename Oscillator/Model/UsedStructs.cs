@@ -29,25 +29,26 @@ namespace Oscillator
 
     internal struct SForce : IForce //распределенная нагрузка
     {
-        public List<Node> nodes;
-        public double[] StartEndMultiplier;
-        public double pressure;
-        public double Fx;
-        public double Fy;
+        public List<Node> nodes; //нагруженные узлы
+        public double[] StartEndMultiplier; // коэффициенты наклона линии нагрузки (условно [1,1] - нагрузка равномерная
+                                            // [1,0] - амплитуда линейно изменяется от максимальной в первом узле до нулевой в последнем
+        public double pressure;  // амплитуда давления
+        public double Fx; //x-компонента нормали
+        public double Fy;  //y-компонента нормали
         public SForce(ref List<int> surfaceForcesNodes,
                       List<Node> nodes, double pressure,
                       double Fx, double Fy,
                       double[] StartEndMultiplier)
         {
-            this.pressure = pressure;
-            this.nodes = new List<Node>();
+            this.pressure = pressure; 
+            this.nodes = new List<Node>(); 
             foreach(int nodeNumber in surfaceForcesNodes)
                 this.nodes.Add(nodes[nodeNumber]);
             this.Fx = Fx;
             this.Fy = Fy;
             this.StartEndMultiplier = StartEndMultiplier;
         }
-        public double loadLength
+        public double loadLength // длина нагрузки
         {
             get
             {
@@ -56,14 +57,14 @@ namespace Oscillator
                 return Math.Sqrt(l2);
             }
         }
-        public double loadMultiplier
+        public double loadMultiplier // коэффициент наклона графика нагрузки
         {
             get
             {
                 return (StartEndMultiplier[1] - StartEndMultiplier[0]) / loadLength; ;
             }
         }
-        public double faceLength(int i)
+        public double faceLength(int i) // дллина нагруженной поверхности элемента
         {
             double l2 = Math.Pow(nodes[i+1].x - nodes[i].x, 2) +
                      Math.Pow(nodes[i+1].y - nodes[i].y, 2);
@@ -71,11 +72,13 @@ namespace Oscillator
         }
     }
 
-    interface IMaterial
+    interface IMaterial : ICloneable
     {
         double E { get; } //модуль Юнга
         double V { get; } //коэф пуассона
         double ro { get; } //плотность в кг/м^3
+
+        int[] elements { get; set; }
     }
 
     enum StateType

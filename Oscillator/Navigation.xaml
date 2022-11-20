@@ -56,6 +56,7 @@
                 <muxc:NavigationViewItem Icon="Play" Content="Вынужденные колебания" Tag="Page2" />
                 <muxc:NavigationViewItem Icon="Map" Content="Нелинейное трение" Tag="BlankPage1" />
                 <muxc:NavigationViewItem Icon="XboxOneConsole" Content="FEM" Tag="FEM"/>
+                <muxc:NavigationViewItem Icon="Play" Content="Цепочка" Tag="ChainPage"/>
             </muxc:NavigationView.MenuItems>
 
             <Frame x:Name="contentFrame" 

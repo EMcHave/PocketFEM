@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using System.Threading.Tasks;
 
 
 
@@ -25,33 +26,16 @@ namespace Oscillator
         IMaterial currentMaterial;
         ObservableCollection<string> forcesToDepict;
         ObservableCollection<string> resultToDepict;
-
-        char[] separators = new char[2] { ' ', ',' };
-        List<int> sforceNodesNumbers = new List<int>();
-
-
-
         ObservableCollection<IMaterial> materials = new ObservableCollection<IMaterial>()
         { new Steel(), new Aluminium(), new Concrete(), new UserMaterial() };
 
-        Windows.Storage.StorageFile file;
+        StorageFile file;
         public FEM()
         {
             this.InitializeComponent();
             femplane = new FEMplane();
             forcesToDepict = new ObservableCollection<string>();
             resultToDepict = new ObservableCollection<string>();
-            
-        }
-
-        private void FEMpage_Loaded(object sender, RoutedEventArgs e)
-        {
-            
-        }
-
-        private void UserTaskCheck_Checked(object sender, RoutedEventArgs e)
-        {
-            ConcForceCheck.IsChecked = false;
         }
 
         async private void LoadGeometryButton_Checked(object sender, RoutedEventArgs e)
@@ -63,65 +47,78 @@ namespace Oscillator
             picker.FileTypeFilter.Add(".inp");
             file = await picker.PickSingleFileAsync();
 
-            LoadGeometryButton.Content = "Геометрия загружена";
-            AddConcForceButton.IsEnabled = true;
-            AddConstraintButton.IsEnabled = true;
-            AddSurfForceButton.IsEnabled = true;
-            AddDisplacementButton.IsEnabled = true;
-            EvaluateButton.IsEnabled = true;
-
             
-
-            femplane.readInputFile(file);
-            femplane.drawEvent += draw;
-            cforces = new List<CForce>();
-            sforces = new List<SForce>();
-            constraints = new List<Constraint>();
-
-            
-        }
-
-        private async void EvaluateButton_Click(object sender, RoutedEventArgs e)
-        {
-            resultToDepict.Clear();
-            if (currentMaterial is UserMaterial)
+            if(file != null)
             {
-                (currentMaterial as UserMaterial).E = EField.Value;
-                (currentMaterial as UserMaterial).V = nuField.Value;
-                (currentMaterial as UserMaterial).ro = roField.Value;
-            }
-            if(currentMaterial != null && constraints.Any())
-            {
+                LoadGeometryButton.Content = "Геометрия загружена";
+                AddConcForceButton.IsEnabled = true;
+                AddConstraintButton.IsEnabled = true;
+                AddSurfForceButton.IsEnabled = true;
+                AddDisplacementButton.IsEnabled = true;
+                EvaluateButton.IsEnabled = true;
+                
+                whatToDrawField.SelectedIndex = 0;
+
                 StateType ct;
                 if (ConditionTypeBox.SelectedIndex == 0)
                     ct = StateType.PlaneStress;
                 else
                     ct = StateType.PlaneStrain;
-                femplane.Solve(currentMaterial, ct, constraints,
-                           (bool)ConcForceCheck.IsChecked, (bool)SurfForceCheck.IsChecked, (bool)GravityCheck.IsChecked,
-                           cforces, sforces, (bool)StrainsCheck.IsChecked, (bool)StressesCheck.IsChecked);
-                resultToDepict.Add("Перемещения");
-                if((bool)StrainsCheck.IsChecked)
+
+                femplane.drawEvent += draw;
+                femplane.evaluationCompletedEvent += stopRing;
+                //resultToDepict.Add("Перемещения");
+                //whatToDrawField.SelectedIndex = 0;
+                femplane.readInputFile(file, ct);
+                
+                cforces = new List<CForce>();
+                sforces = new List<SForce>();
+                constraints = new List<Constraint>();
+
+            }
+        }
+       
+
+        private async void EvaluateButton_Click(object sender, RoutedEventArgs e)
+        {
+            resultToDepict.Clear();
+
+            foreach(var element in femplane.elements)
+            {
+                if (element.material == null)
                 {
-                    resultToDepict.Add("Деформации E11");
-                    resultToDepict.Add("Деформации E12");
-                    resultToDepict.Add("Деформации E22");
-                }
-                if ((bool)StressesCheck.IsChecked)
-                {
-                    resultToDepict.Add("Напряжения S11");
-                    resultToDepict.Add("Напряжения S12");
-                    resultToDepict.Add("Напряжения S22");
+                    ContentDialog dialog = new ContentDialog();
+                    dialog.Title = "Не задан материал тела или его части";
+                    dialog.PrimaryButtonText = "OK";
+                    dialog.DefaultButton = ContentDialogButton.Primary;
+                    var result = await dialog.ShowAsync();
+
+                    return;
                 }
             }
-                
-            else
+
+            bool cf = (bool)ConcForceCheck.IsChecked;
+            bool sf = (bool)SurfForceCheck.IsChecked;
+            bool gc = (bool)GravityCheck.IsChecked;
+            bool snsc = (bool)StrainsCheck.IsChecked;
+            bool stsc = (bool)StressesCheck.IsChecked;
+
+            evaluationRing.IsIndeterminate = true;
+            await Task.Run(() => femplane.Solve(constraints,
+                        cf, sf, gc,
+                        cforces, sforces, snsc, stsc));
+            resultToDepict.Add("Перемещения");
+            if ((bool)StrainsCheck.IsChecked)
             {
-                ContentDialog dialog = new ContentDialog();
-                dialog.Title = "Не заданы закрепления или материал";
-                dialog.PrimaryButtonText = "OK";
-                dialog.DefaultButton = ContentDialogButton.Primary;
-                var result = await dialog.ShowAsync();
+                resultToDepict.Add("Деформации E11");
+                resultToDepict.Add("Деформации E12");
+                resultToDepict.Add("Деформации E22");
+            }
+            if ((bool)StressesCheck.IsChecked)
+            {
+                resultToDepict.Add("Напряжения S11");
+                resultToDepict.Add("Напряжения S12");
+                resultToDepict.Add("Напряжения S22");
             }
         }
 
@@ -153,8 +150,10 @@ namespace Oscillator
             CFFyField.Value = double.NaN;
         }
 
+        char[] separators = new char[2] { ' ', ',' };
         private async void AddSurfForceButton_Click(object sender, RoutedEventArgs e)
         {
+            List<int> sforceNodesNumbers = new List<int>();
             string[] nodes = SurfForceNodesField.Text.Split(separators, StringSplitOptions.RemoveEmptyEntries);
             foreach (string node in nodes)
                 sforceNodesNumbers.Add(int.Parse(node)-1);
@@ -181,12 +180,18 @@ namespace Oscillator
         }
 
 
+
         private void LoadGeometryButton_Unchecked(object sender, RoutedEventArgs e)
         {
             LoadGeometryButton.Content = "Загрузить геометрию";
-            femplane = null;
+            femplane = new FEMplane();
             sforces = null;
             cforces = null;
+            constraints = null;
+            currentMaterial = null;
+            forcesToDepict = null;
+            resultToDepict = null;
+            file = null;
             canvas.Children.Clear();
         }
 
@@ -218,7 +223,15 @@ namespace Oscillator
                 dialog.DefaultButton = ContentDialogButton.Primary;
                 var result = await dialog.ShowAsync();
             }
-            
+            catch(System.ArgumentOutOfRangeException)
+            {
+                ContentDialog dialog = new ContentDialog();
+                dialog.Title = "Такого узла нет в системе";
+                dialog.PrimaryButtonText = "OK";
+                dialog.DefaultButton = ContentDialogButton.Primary;
+                var result = await dialog.ShowAsync();
+            }
+
         }
 
         private async void AddConstraintButton_Click(object sender, RoutedEventArgs e)
@@ -257,9 +270,9 @@ namespace Oscillator
         {
 
             canvas.Children.Clear();
-            List<double> X = new List<double>(); 
+            List<double> X = new List<double>();
             List<double> Y = new List<double>();
-            foreach(var node in femplane.nodes)
+            foreach (var node in femplane.nodes)
             {
                 X.Add(node.x);
                 Y.Add(node.y);
@@ -270,30 +283,24 @@ namespace Oscillator
             double ymax = Y.Max();
 
             double aspectRatio = Math.Abs((xmax - xmin) / (ymax - ymin));
+            double canvasRatio = canvas.ActualWidth / canvas.ActualHeight;
             double c1 = 0;
-            double c2 = 0;
 
-            if (aspectRatio >= 1)
-            {
-                c1 = Math.Abs(canvas.ActualWidth / (xmax - xmin));
-                c2 = c1;
-            }
+            if (aspectRatio >= canvasRatio)
+                c1 = canvas.ActualWidth / Math.Abs((xmax - xmin));
             else
-            {
-                c2 = canvas.ActualHeight / Math.Abs((ymax - ymin));
-                c1 = c2;
-            }
+                c1 = canvas.ActualHeight / Math.Abs((ymax - ymin));
 
             double valmax, valmin;
 
             List<double> data = new List<double>();
             switch (e.whatToDraw)
             {
-                case "Деформации E11":  
+                case "Деформации E11":
                     foreach (var el in femplane.elements)
                         data.Add(el.strains[0]);
                     break;
-                case "Деформации E12": 
+                case "Деформации E12":
                     foreach (var el in femplane.elements)
                         data.Add(el.strains[2]);
                     break;
@@ -315,11 +322,11 @@ namespace Oscillator
                     break;
             }
 
-            
+
             if (e.whatToDraw == "Перемещения")
             {
                 foreach (var el in femplane.elements)
-                    drawPolygon(el, Windows.UI.Colors.SteelBlue, xmin, ymin, ymax, c1, c2);
+                    drawPolygon(el, Windows.UI.Colors.SteelBlue, xmin, ymin, ymax, c1);
             }
             else
             {
@@ -353,16 +360,45 @@ namespace Oscillator
                         (byte)((value > 0.5 ? 2 * value - 1 : 0) * 255),
                         (byte)((value > 0.5 ? 2 - 2 * value : 2 * value) * 255),
                         (byte)((value > 0.5 ? 0 : (1 - 2 * value)) * 255));
-                    drawPolygon(el, color, xmin, ymin, ymax, c1, c2, value);
+                    drawPolygon(el, color, xmin, ymin, ymax, c1, value);
                 }
+
+                var schemeRect = new Rectangle();
+                var max = new TextBlock();
+                var min = new TextBlock();
+
+
+                max.Text = valmax.ToString("0.##E+0", System.Globalization.CultureInfo.InvariantCulture);
+                Canvas.SetTop(max, 4);
+                Canvas.SetLeft(max, canvas.ActualWidth - 50);
                 
+                min.Text = valmin.ToString("0.##E+0", System.Globalization.CultureInfo.InvariantCulture);
+                Canvas.SetTop(min, 234);
+                Canvas.SetLeft(min, canvas.ActualWidth - 50);
+
+
+                schemeRect.Width = 40;
+                schemeRect.Height = 240;
+                var collection = new GradientStopCollection()
+                { new GradientStop() { Color = Windows.UI.Colors.Red, Offset = 0.0 }, new GradientStop() { Color = Windows.UI.Colors.Green, Offset = 0.5 },new GradientStop() { Color = Windows.UI.Colors.Blue, Offset = 1 } };
+                schemeRect.Fill = new LinearGradientBrush(collection, 90);
+                Canvas.SetLeft(schemeRect, canvas.ActualWidth - 100);
+                Canvas.SetTop(schemeRect, 4);
+                canvas.Children.Add(schemeRect);
+                canvas.Children.Add(max);
+                canvas.Children.Add(min);
             }
+
+
+
+
+            
 
             double x, y;
             foreach(var n in femplane.nodes)
             {
                 x = (n.x - xmin) * c1;
-                y = -((n.y - ymin) - ymax) * c2;
+                y = -((n.y - Math.Abs(ymax))) * c1;
                 var textblock = new TextBlock();
                 textblock.Text = (n.id + 1).ToString();
                 Canvas.SetLeft(textblock, x);
@@ -373,8 +409,12 @@ namespace Oscillator
 
         private void canvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if(femplane.nodes != null)
-                draw(this, new DrawEventArgs { whatToDraw = whatToDrawField.SelectedItem as string });
+            if (femplane.nodes != null)
+                if(!resultToDepict.Any())
+                    draw(this, new DrawEventArgs { whatToDraw = "Перемещения" });
+                else
+                    draw(this, new DrawEventArgs { whatToDraw = whatToDrawField.SelectedItem as string });
+
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -383,7 +423,7 @@ namespace Oscillator
             draw(this, new DrawEventArgs { whatToDraw = whatToDraw });
         }
 
-        private void drawPolygon(Element el, Windows.UI.Color color, double xmin, double ymin, double ymax, double c1, double c2, double value = 0)
+        private void drawPolygon(Element el, Windows.UI.Color color, double xmin, double ymin, double ymax, double c1, double value = 0)
         {
             double x, y;
 
@@ -395,7 +435,7 @@ namespace Oscillator
             for (int i = 0; i < 3; i++)
             {
                 x = (el.nodes[i].x - xmin) * c1;
-                y = -((el.nodes[i].y - ymin) - ymax) * c2;
+                y = -((el.nodes[i].y - Math.Abs(ymax))) * c1;
                 points.Add(new Windows.Foundation.Point(x, y));
             }
 
@@ -421,6 +461,31 @@ namespace Oscillator
             {
                 femplane.writeVTK(new_file, (bool)StrainsCheck.IsChecked, (bool)StressesCheck.IsChecked);
             }
+        }
+
+        private void AddMaterialButton_Click(object sender, RoutedEventArgs e)
+        {
+            
+            IMaterial material = (IMaterial)currentMaterial.Clone();
+            if (material is UserMaterial)
+            {
+                (material as UserMaterial).ro = roField.Value;
+                (material as UserMaterial).V = nuField.Value;
+                (material as UserMaterial).E = EField.Value;
+            }
+            material.elements = new int[2] { (int)firstElementField.Value, (int)lastElementField.Value };
+            
+            for(int i = material.elements[0]-1; i <= material.elements[1]-1; i++)
+               femplane.elements[i].material = material;
+
+            EField.Value = Double.NaN;
+            nuField.Value = Double.NaN;
+            roField.Value = Double.NaN;
+        }
+
+        private void stopRing()
+        {
+            evaluationRing.IsIndeterminate = false;
         }
     }
 }

@@ -14,30 +14,42 @@ namespace Oscillator
 {
     internal class FEMplane : INotifyPropertyChanged
     {
-
+        
         private Matrix<double>? StiffnessGlobal;
         private Vector<double>? ForcesVector;
         private List<Constraint>? constraints;
         private List<CForce> concentratedForces;
         private List<SForce> surfaceForces;
-        private IMaterial material;
-        private StateType stateType;
         const double g = -9.81;
-
-        public static Matrix<double> Dmatrix;
 
         public double thickness;
         public List<Node>? nodes { get; private set; }
         public List<Element>? elements { get; private set; }
-        public FEMplane()
-        {
-        }
 
         public Vector<double> displacements { get; set; }
-        private Vector<double> strains { get; set; }
-        private Vector<double> stresses { get; set; }
 
-        public async void Solve(IMaterial material, StateType ct, List<Constraint> constraints,
+        private double defcoef = 2000;
+        public double DefCoef
+        {
+            get { return defcoef; }
+            set
+            {
+                defcoef = value;
+                OnPropertyChanged("DefCoef");
+            }
+        }
+
+        public delegate void EvaluationCompleted();
+        public event EvaluationCompleted evaluationCompletedEvent;
+        public delegate void Draw(object sender, DrawEventArgs e);
+        public event Draw drawEvent;
+
+
+
+
+
+        public FEMplane() { }
+        public async void Solve(List<Constraint> constraints,
                         bool cf, bool sf, bool gf, List<CForce> concentratedForces,
                         List<SForce> surfaceForces,
                         bool calculateStrains, bool calculateStresses)
@@ -46,35 +58,13 @@ namespace Oscillator
             StiffnessGlobal = Matrix<double>.Build.Sparse(2 * nodes.Count(), 2 * nodes.Count());
             ForcesVector = Vector<double>.Build.Sparse(2 * nodes.Count());
             this.thickness = 1;
-            this.material = material;
-            stateType = ct;
-            switch (stateType)
-            {
-                case StateType.PlaneStress:
-                    Dmatrix = material.E / (1 - Math.Pow(material.V, 2)) * Matrix<double>.Build.DenseOfArray(
-                    new double[,]
-                     {
-                        { 1, material.V, 0},
-                        {material.V, 1, 0},
-                        {0,0, (1-material.V)/2 }
-                    });
-                    break;
-                case StateType.PlaneStrain:
-                    Dmatrix = material.E / (1 + material.V) / (1 - 2 * material.V) * Matrix<double>.Build.DenseOfArray(
-                    new double[,]
-                     {
-                        { 1 - material.V, material.V, 0},
-                        {material.V, 1 - material.V, 0},
-                        {0,0, (1-2*material.V)/2 }
-                    });
-                    break;
-            }
-
             this.constraints = constraints;
             this.concentratedForces = concentratedForces;
             this.surfaceForces = surfaceForces;
-            buildForcesVector(cf, sf, gf);
+
             buildStiffnessMatrix();
+            
+            buildForcesVector(cf, sf, gf);
             applyConstraints();
 
 
@@ -84,9 +74,12 @@ namespace Oscillator
                 computeStrains();
             if (calculateStresses)
                 computeStresses(calculateStrains);
-
-            updateGeometry();
-
+            await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+            () =>
+            {
+                updateGeometry();
+                evaluationCompletedEvent();
+            });
         }
 
         private void applyConstraints()
@@ -107,16 +100,79 @@ namespace Oscillator
                 StiffnessGlobal.ClearColumn(DOF);
                 StiffnessGlobal[DOF, DOF] = 1;
             }
-
-
         }
 
-        public delegate void Draw(object sender, DrawEventArgs e);
-        public event Draw drawEvent;
+        private void buildStiffnessMatrix()
+        {
+            foreach (var element in elements)
+            {
+                element.CalculateStiffnessMatrix(ref StiffnessGlobal);
+            }
+        }
 
+        private void buildForcesVector(
+                                       bool cf, bool sf, bool gf)
+        {
+            Vector<double> concForces = Vector<double>.Build.Sparse(2 * nodes.Count());
+            Vector<double> surfForces = Vector<double>.Build.Sparse(2 * nodes.Count());
+            Vector<double> gForces = Vector<double>.Build.Sparse(2 * nodes.Count());
 
+            if (cf)
+            {
+                foreach (var force in concentratedForces)
+                {
+                    concForces[2 * force.nodeId] = force.Fx;
+                    concForces[2 * force.nodeId + 1] = force.Fy;
+                }
+            }
+            if (sf)
+            {
+                foreach (SForce load in surfaceForces)
+                {
 
-        public async void readInputFile(Windows.Storage.StorageFile file)
+                    double x1 = 0;
+                    double xl1, xl2, S;
+                    for (int i = 0; i < load.nodes.Count; i++)
+                    {
+                        xl1 = x1;
+                        if (i == 0)
+                        {
+                            xl2 = x1 + load.faceLength(i) / 2;
+                            S = (2 * load.StartEndMultiplier[0] + load.loadMultiplier * (xl1 + xl2)) / 2 * (load.faceLength(i) / 2);
+                            x1 = xl2;
+                        }
+                        else if (i == load.nodes.Count - 1)
+                        {
+                            xl2 = x1 + load.faceLength(i - 1) / 2;
+                            S = (2 * load.StartEndMultiplier[0] + load.loadMultiplier * (xl1 + xl2)) / 2 * (load.faceLength(i - 1) / 2);
+                        }
+                        else
+                        {
+                            xl2 = x1 + (load.faceLength(i - 1) + load.faceLength(i)) / 2;
+                            S = (2 * load.StartEndMultiplier[0] + load.loadMultiplier * (xl1 + xl2)) / 2 * (xl2 - xl1);
+                            x1 = xl2;
+                        }
+                        surfForces[2 * load.nodes[i].id] += load.pressure * load.Fx * thickness * S;
+                        surfForces[2 * load.nodes[i].id + 1] += load.pressure * load.Fy * thickness * S;
+                    }
+                }
+            }
+            if (gf)
+            {
+
+                foreach (var element in elements)
+                {
+                    var gVector = element.Jacobian().Determinant() * element.material.ro * g * thickness / 6 * Vector<double>.Build.DenseOfArray(new double[6] { 0, 1, 0, 1, 0, 1 });
+                    gForces[2 * element.nodesIDs[0] + 1] += gVector[1];
+                    gForces[2 * element.nodesIDs[1] + 1] += gVector[3];
+                    gForces[2 * element.nodesIDs[2] + 1] += gVector[5];
+                }
+            }
+
+            ForcesVector = concForces + surfForces + gForces;
+        }
+
+        public async void readInputFile(StorageFile file, StateType st)
         {
             nodes = new List<Node>();
             elements = new List<Element>();
@@ -149,92 +205,14 @@ namespace Oscillator
                     elements.Add(new Element(nodes[int.Parse(numbers[1]) - 1],
                         nodes[int.Parse(numbers[2]) - 1],
                         nodes[int.Parse(numbers[3]) - 1],
-                        int.Parse(numbers[0]) - 1));
+                        int.Parse(numbers[0]) - 1, st));
                 }
             }
+            OnPropertyChanged("elements");
             drawEvent(this, new DrawEventArgs { whatToDraw = "Перемещения" });
         }
-        private void buildStiffnessMatrix()
-        {
-            foreach (var element in elements)
-            {
-                element.CalculateStiffnessMatrix(ref StiffnessGlobal, ref Dmatrix);
-            }
-        }
+        
 
-        private void buildForcesVector(
-                                       bool cf, bool sf, bool gf)
-        {
-            Vector<double> concForces = Vector<double>.Build.Sparse(2 * nodes.Count());
-            Vector<double> surfForces = Vector<double>.Build.Sparse(2 * nodes.Count());
-            Vector<double> gForces = Vector<double>.Build.Sparse(2 * nodes.Count());
-
-            if (cf)
-            {
-                foreach (var force in concentratedForces)
-                {
-                    concForces[2 * force.nodeId] = force.Fx;
-                    concForces[2 * force.nodeId + 1] = force.Fy;
-                }
-            }
-            if (sf)
-            {
-                foreach (var load in surfaceForces)
-                {
-
-                    double x1 = 0;
-                    double xl1, xl2, S;
-                    for (int i = 0; i < load.nodes.Count; i++)
-                    {
-                        xl1 = x1;
-                        if (i == 0)
-                        {
-                            xl2 = x1 + load.faceLength(i) / 2;
-                            S = (2 * load.StartEndMultiplier[0] + load.loadMultiplier * (xl1 + xl2)) / 2 * (load.faceLength(i) / 2);
-                            x1 = xl2;
-                        }
-                        else if (i == load.nodes.Count - 1)
-                        {
-                            xl2 = x1 + load.faceLength(i - 1) / 2;
-                            S = (2 * load.StartEndMultiplier[0] + load.loadMultiplier * (xl1 + xl2)) / 2 * (load.faceLength(i - 1) / 2);
-                        }
-                        else
-                        {
-                            xl2 = x1 + (load.faceLength(i - 1) + load.faceLength(i)) / 2;
-                            S = (2 * load.StartEndMultiplier[0] + load.loadMultiplier * (xl1 + xl2)) / 2 * (xl2 - xl1);
-                            x1 = xl2;
-                        }
-                        surfForces[2 * load.nodes[i].id] += load.pressure * load.Fx * thickness * S;
-                        surfForces[2 * load.nodes[i].id + 1] += load.pressure * load.Fy * thickness * S;
-                    }
-                }
-            }
-            if (gf)
-            {
-                foreach (var element in elements)
-                {
-                    var gVector = element.Jacobian().Determinant() * material.ro * g * thickness / 6 * Vector<double>.Build.DenseOfArray(new double[6] { 0, 1, 0, 1, 0, 1 });
-                    gForces[2 * element.nodesIDs[0] + 1] += gVector[1];
-                    gForces[2 * element.nodesIDs[1] + 1] += gVector[3];
-                    gForces[2 * element.nodesIDs[2] + 1] += gVector[5];
-                }
-            }
-
-            ForcesVector = concForces + surfForces + gForces;
-
-
-
-        }
-        private double defcoef = 1000;
-        public double DefCoef
-        {
-            get { return defcoef; }
-            set
-            {
-                defcoef = value;
-                OnPropertyChanged("DefCoef");
-            }
-        }
         private void updateGeometry()
         {
             for (int i = 0; i < nodes.Count; i++)
@@ -245,15 +223,7 @@ namespace Oscillator
 
             drawEvent(this, new DrawEventArgs { whatToDraw = "Перемещения" });
         }
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged(string propertyName)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
+        
 
         public void computeStrains()
         {
@@ -278,12 +248,12 @@ namespace Oscillator
         {
             if (strainsCalculated)
                 foreach (var el in elements)
-                    el.stresses = Dmatrix * el.strains;
+                    el.stresses = el.Dmatrix * el.strains;
             else
             {
                 computeStrains();
                 foreach (var el in elements)
-                    el.stresses = Dmatrix * el.strains;
+                    el.stresses = el.Dmatrix * el.strains;
             }
         }
 
@@ -307,7 +277,7 @@ namespace Oscillator
                     foreach (var el in elements)
                         sw.WriteString($"3\t {el.nodesIDs[0]}\t{el.nodesIDs[1]}\t{el.nodesIDs[2]}\n");
                     sw.WriteString($"POINT_DATA {nodes.Count}\n");
-                    sw.WriteString("VECTORS Displacements float 1\nLOOKUP_TABLE default\n");
+                    sw.WriteString("VECTORS Displacements float\n");
                     for (int i = 0; i < nodes.Count; i++)
                         sw.WriteString($"{displacements[2 * i].ToString(nfi)}\t{displacements[2 * i + 1].ToString(nfi)}\t0\n");
                     if (stresses || strains) sw.WriteString($"CELL_DATA {elements.Count}\n");
@@ -319,8 +289,8 @@ namespace Oscillator
                             sw.WriteString($"{el.strains[0].ToString(nfi)}\n");
                         sw.WriteString("SCALARS E12 float 1\nLOOKUP_TABLE default\n");
                         foreach (var el in elements)
-                            sw.WriteString($"{el.strains[2].ToString(nfi)}\n");
-                        sw.WriteString("SCALARS E12 float 1\nLOOKUP_TABLE default\n");
+                            sw.WriteString($"{(el.strains[2]).ToString(nfi)}\n");
+                        sw.WriteString("SCALARS E22 float 1\nLOOKUP_TABLE default\n");
                         foreach (var el in elements)
                             sw.WriteString($"{el.strains[1].ToString(nfi)}\n");
                     }
@@ -344,8 +314,17 @@ namespace Oscillator
                 }
             }
             stream.Dispose();
+        }
 
 
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
     }
 }

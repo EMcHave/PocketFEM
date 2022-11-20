@@ -10,9 +10,11 @@ namespace Oscillator
     internal class Element
     {
         public int Id { get; private set; }
-        private Matrix<double> K_local { get; set; } //локальная матрица жесткости
         public List<int> nodesIDs { get; } //массив номеров узлов (для сборки глобальной матрицы жест)
         public List<Node> nodes { get; } //массив узлов, принадлежащих элементу
+        public IMaterial material { get; set; }
+        public StateType state { get; set; }
+        public Matrix<double> Dmatrix { get; set; }
 
         public Vector<double> strains;
         public Vector<double> stresses;
@@ -24,9 +26,29 @@ namespace Oscillator
                     (nodes[2].x - nodes[0].x) * (nodes[1].y - nodes[0].y));
             } 
         }
-        public void CalculateStiffnessMatrix(ref Matrix<double> K_global,
-                                             ref Matrix<double> D)
+        public void CalculateStiffnessMatrix(ref Matrix<double> K_global)
         {
+            switch (state)
+            {
+                case StateType.PlaneStress:
+                    Dmatrix = material.E / (1 - Math.Pow(material.V, 2)) * Matrix<double>.Build.DenseOfArray(
+                    new double[,]
+                    {
+                            { 1, material.V, 0},
+                            {material.V, 1, 0},
+                            {0,0, (1-material.V)/2 }
+                    });
+                    break;
+                case StateType.PlaneStrain:
+                    Dmatrix = material.E / (1 + material.V) / (1 - 2 * material.V) * Matrix<double>.Build.DenseOfArray(
+                    new double[,]
+                    {
+                            { 1 - material.V, material.V, 0},
+                            {material.V, 1 - material.V, 0},
+                            {0,0, (1-2*material.V)/2 }
+                    });
+                    break;
+            }
             Matrix<double> B = GenerateBMatrix();
             Matrix<double> KLocal = Matrix<double>.Build.Dense(6, 6);
             Matrix<double> C = Matrix<double>.Build.DenseOfArray(new double[,]
@@ -35,7 +57,7 @@ namespace Oscillator
                 {1, nodes[1].x, nodes[1].y},
                 {1, nodes[2].x, nodes[2].y }
             });
-            KLocal = B.Transpose() * D * B * C.Determinant() / 2;
+            KLocal = B.Transpose() * Dmatrix * B * C.Determinant() / 2;
             for(int i = 0; i < 3; i++)
                 for(int j = 0; j < 3; j++)
                 {
@@ -72,11 +94,12 @@ namespace Oscillator
             return B;
         }
 
-        public Element(Node n1, Node n2, Node n3, int Id)
+        public Element(Node n1, Node n2, Node n3, int Id, StateType stateType)
         {
             nodes = new List<Node> { n1, n2, n3 };
             nodesIDs = new List<int> { n1.id, n2.id, n3.id };  
             this.Id = Id;
+            this.state = stateType;
         }
 
         public Matrix<double> Jacobian()

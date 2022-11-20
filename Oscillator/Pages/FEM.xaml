@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:canvas ="using:Microsoft.Graphics.Canvas.UI.Xaml"
-    mc:Ignorable="d" Loaded="FEMpage_Loaded"
+    mc:Ignorable="d"
     >
     <Page.BottomAppBar>
         <CommandBar ClosedDisplayMode="Compact">
@@ -56,6 +56,12 @@
                                         <Button.Content>
                                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
                                         </Button.Content>
+                                        <Button.Flyout>
+                                            <Flyout>
+                                                <TextBlock Style="{ThemeResource BaseTextBlockStyle}" Text="Сосредоточенная сила добавлена"/>
+                                            </Flyout>
+                                        </Button.Flyout>
+
                                     </Button>
                                 </StackPanel>
 
@@ -79,6 +85,11 @@
                                     <Button.Content>
                                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
                                     </Button.Content>
+                                    <Button.Flyout>
+                                        <Flyout>
+                                            <TextBlock Style="{ThemeResource BaseTextBlockStyle}" Text="Поверхностная сила добавлена"/>
+                                        </Flyout>
+                                    </Button.Flyout>
                                 </Button>
 
                                 <CheckBox Name="GravityCheck" Content="Гравитация" Margin="0,15,0,5"/>
@@ -106,6 +117,11 @@
                                     <Button.Content>
                                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
                                     </Button.Content>
+                                    <Button.Flyout>
+                                        <Flyout>
+                                            <TextBlock Style="{ThemeResource BaseTextBlockStyle}" Text="Закрепление добавлено"/>
+                                        </Flyout>
+                                    </Button.Flyout>
                                 </Button>
                             </StackPanel>
                             <CheckBox x:Name="DisplacementsCheck" Content="Смещения" Margin="0,15,0,5"/>
@@ -117,6 +133,11 @@
                                     <Button.Content>
                                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
                                     </Button.Content>
+                                    <Button.Flyout>
+                                        <Flyout>
+                                            <TextBlock Style="{ThemeResource BaseTextBlockStyle}" Text="Заданное смещение добавлено"/>
+                                        </Flyout>
+                                    </Button.Flyout>
                                 </Button>
                             </StackPanel>
 
@@ -129,35 +150,53 @@
                         HorizontalAlignment="Left" 
                         CornerRadius="8"
                         BorderThickness="1"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="385" Height="298">
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="385" Height="337">
                     <StackPanel Orientation="Vertical" Padding="15,10,0,0">
                         <StackPanel Orientation="Vertical">
                             <TextBlock Text="Материал:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="1,5,0,0"/>
-                            <ComboBox x:Name="MaterialChoice" Margin="0,15,0,5" PlaceholderText="Выберите материал" SelectionChanged="MaterialChoice_SelectionChanged" >
-                                <ComboBoxItem Content="Сталь"/>
-                                <ComboBoxItem Content="Алюминий"/>
-                                <ComboBoxItem Content="Бетон"/>
-                                <ComboBoxItem Content="Пользовательский материал"/>
-                            </ComboBox>
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox x:Name="MaterialChoice" Margin="0,15,0,5" PlaceholderText="Выберите материал" SelectionChanged="MaterialChoice_SelectionChanged" Width="177" >
+                                    <ComboBoxItem Content="Сталь"/>
+                                    <ComboBoxItem Content="Алюминий"/>
+                                    <ComboBoxItem Content="Бетон"/>
+                                    <ComboBoxItem Content="Пользовательский материал"/>
+                                </ComboBox>
+                                <Button  x:Name="AddMaterialButton" Width="64"   VerticalAlignment="Center" Margin="4.5,10.5,0,0" Height="31" Click="AddMaterialButton_Click"  >
+                                    <Button.Content>
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
+                                    </Button.Content>
+                                    <Button.Flyout>
+                                        <Flyout>
+                                            <TextBlock Style="{ThemeResource BaseTextBlockStyle}" Text="Материал добавлен"/>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </StackPanel>
+
                         </StackPanel>
 
 
                         <TextBlock Text="Пользовательский материал:" FontSize="16" Margin="0,5,0,0"/>
                         <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
                             <TextBlock Text="Модуль Юнга:" Margin="0,5,0,0"/>
-                            <muxc:NumberBox x:Name="EField" PlaceholderText="ГПа" Margin="73,0,0,0"/>
+                            <muxc:NumberBox x:Name="EField" PlaceholderText="ГПа" Margin="90,0,0,0"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Padding="0,5,0,0">
                             <TextBlock Text="Коэффициент Пуассона:" Margin="0,5,0,0"/>
-                            <muxc:NumberBox x:Name="nuField" PlaceholderText="" Margin="10,0,0,0"/>
+                            <muxc:NumberBox x:Name="nuField" PlaceholderText="" Margin="27,0,0,0"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Padding="0,5,0,0">
                             <TextBlock Text="Плотность:" Margin="0,5,0,0"/>
-                            <muxc:NumberBox x:Name="roField" PlaceholderText="кг/м^3" Margin="95,0,0,0"/>
+                            <muxc:NumberBox x:Name="roField" PlaceholderText="кг/м^3" Margin="112,0,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Padding="0,5,0,0">
+                            <TextBlock Text="Элементы" Margin="0,5,0,0"/>
+                            <muxc:NumberBox PlaceholderText="С" x:Name="firstElementField" Value ="1"  Margin="27,0,0,0"/>
+                            <muxc:NumberBox PlaceholderText="До" x:Name="lastElementField" Value="{x:Bind femplane.elements.Count, Mode=OneWay}" Margin="26,0,0,0"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Padding="0,20,0,0">
                             <TextBlock Text="Толщина тела:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="1,2,0,0"/>
-                            <muxc:NumberBox PlaceholderText="м" Width="63" Margin="45,0,0,0"/>
+                            <muxc:NumberBox PlaceholderText="м" Width="63" Margin="62,0,0,0"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -169,16 +208,22 @@
                         BorderThickness="1"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Width="385" Height="155" Padding="0,0,0,0">
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal" Padding="15,10,0,0">
+                        <StackPanel Orientation="Horizontal" Padding="15,10,0,0" Margin="0,-2,0,0">
                             <StackPanel Orientation="Vertical">
                                 <TextBlock Text= "Расчетные величины:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="1,5,0,0"/>
                                 <CheckBox x:Name="DispsCheck" Content="Перемещения" IsChecked="True" IsEnabled="False" Margin="0,5,0,0"/>
                                 <CheckBox x:Name="StrainsCheck" Content="Деформации"/>
                                 <CheckBox x:Name="StressesCheck" Content="Напряжения"/>
                             </StackPanel>
-                            <Button x:Name="EvaluateButton" IsEnabled="False" Content="Рассчитать" Height="90" Margin="02,30,0,0" Width="171" Click="EvaluateButton_Click"/>
+                            <StackPanel Orientation="Vertical">
+                                <Button x:Name="EvaluateButton" IsEnabled="False" Content="Рассчитать" Height="86" Margin="2,38,0,0" Width="161" Click="EvaluateButton_Click"/>
+                                <muxc:ProgressBar x:Name="evaluationRing" Width="159" IsIndeterminate="False" ShowPaused="False" ShowError="False" Margin="2,5,0,0"  />
+                            </StackPanel>
+                            
+                            
                         </StackPanel>
                     </StackPanel>
+                    
                 </Border>
             </StackPanel>
         </ScrollViewer>
@@ -186,7 +231,7 @@
         <StackPanel Orientation="Horizontal" Grid.Column="1" Height="36" VerticalAlignment="Top">
             <muxc:NumberBox x:Name="deformField" Value="{x:Bind femplane.DefCoef, Mode=TwoWay}"  PlaceholderText="Коэффрицент деформации" Margin="15,0,0,0" VerticalAlignment="Center"/>
             <ComboBox PlaceholderText="Силы" ItemsSource="{x:Bind forcesToDepict}" Margin="20,0,0,0" VerticalAlignment="Center"/>
-            <ComboBox x:Name="whatToDrawField" PlaceholderText="Отрисовать" ItemsSource="{x:Bind resultToDepict}" Margin="20,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" HorizontalContentAlignment="Right" SelectionChanged="ComboBox_SelectionChanged" SelectedIndex="0"/>
+            <ComboBox x:Name="whatToDrawField"  PlaceholderText="Отрисовать" ItemsSource="{x:Bind resultToDepict}" Margin="20,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" HorizontalContentAlignment="Right" SelectionChanged="ComboBox_SelectionChanged"/>
         </StackPanel>
         <Border
                     Grid.Column="1"
