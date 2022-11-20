@@ -159,8 +159,8 @@ namespace Oscillator
                && !Double.IsNaN(cField.Value) && !Double.IsNaN(mField.Value) && !Double.IsNaN(nYField.Value))
             {
                 chainCanvas.Paused = true;
+                coordChainCanvas.Paused = true;
                 i = 0;
-                j = 0;
                 k = 0;
                 isStaticStep = true;
                 evaluationBar.Visibility = Visibility.Visible;

@@ -43,7 +43,7 @@ namespace Oscillator
             Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, 
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
         {
-            args.DrawingSession.FillCircle((float)nonLinear.animResource[0][i], (float)nonLinear.animResource[1][i], 5, Color.FromArgb(255, 255, 255, 255));
+            args.DrawingSession.FillCircle((float)nonLinear.animResource[0][i], (float)nonLinear.animResource[1][i], 20, Color.FromArgb(255, 255, 255, 255));
             args.DrawingSession.DrawLine(175, 0, (float)nonLinear.animResource[0][i], (float)nonLinear.animResource[1][i], Color.FromArgb(255, 255, 255, 255));
             args.DrawingSession.DrawImage(clPen);
             if (i < nonLinear.animResource[0].Count - 1)
@@ -106,8 +106,6 @@ namespace Oscillator
             }
         }
 
-
-
         private void coordCanvas_Draw(
             Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender,
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
@@ -159,8 +157,6 @@ namespace Oscillator
                 clds.DrawText("Speed", 590, 30, Color.FromArgb(255, 0, 191, 255));
             }
         }
-
-
 
         private void startButton_Click(object sender, RoutedEventArgs e)
         {
