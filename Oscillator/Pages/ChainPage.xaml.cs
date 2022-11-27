@@ -26,11 +26,12 @@ namespace Oscillator
         private int i;
         private int j;
         private int k;
+        private int timeScale;
         private float w;
         private float hcoord;
         private double maxA;
         private CanvasGeometry speedPath;
-        private double[] time;
+        private List<double> time;
         private List<double> fullA;
         private bool isStaticStep;
 
@@ -54,13 +55,8 @@ namespace Oscillator
             hcoord = (float)coordChainCanvas.Height;
             double xScale = (w - 50) / 2;
             double yScale = (chainCanvas.Height - 50) / maxY;
-            //clPen  = new CanvasCommandList(sender);
-            /*
-            if (Double.IsNaN(chain.Particles[chain.Particles.Count - 1].R[chain.nT - 1][1]))
-            {
-                throw new Exception()
-            }
-            */
+            timeScale = (int)((1.0 / chain.dt) / 60);
+
             foreach (Particle p in chain.Particles)
             {
                 foreach (Vector<double> r in p.R)
@@ -70,38 +66,55 @@ namespace Oscillator
                 }
             }
             fullA = new List<double>(chain.Particles[0].A.Count);
-            time = new double[chain.Particles[0].A.Count];
-            for(int i = 0; i < chain.Particles[0].A.Count; i++)
+            time = new List<double>(chain.Particles[0].A.Count);
+
+            timeScale = (int)((1.0 / chain.dt) / 60);
+
+            for(int i = 0; i < chain.Particles[0].A.Count; i+=timeScale)
             {
                 fullA.Add(Math.Sqrt(chain.Particles[chain.N - 1].A[i][0] * chain.Particles[chain.N - 1].A[i][0] +
                                      chain.Particles[chain.N - 1].A[i][1] * chain.Particles[chain.N - 1].A[i][1]));
-                time[i] = i * chain.dt * w/chain.t;
+                time.Add(i * chain.dt * w/chain.t);
             }
             maxA = fullA.Max();
             for (int i = 0; i < fullA.Count; i++)
                 fullA[i] = hcoord - fullA[i] * hcoord / maxA;
-
-
+            
             chainCanvas.Paused = !chainCanvas.Paused;
-
         }
 
-        private void chainCanvas_Draw(
+        async private void chainCanvas_Draw(
             Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, 
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
         {
             foreach (Particle p in chain.Particles)
                 args.DrawingSession.FillCircle((float)(p.R[i][0] + w / 2), -(float)(p.R[i][1] - 10), 10, Color.FromArgb(255, 0, 191, 255));
+           
             if (isStaticStep)
                 if (i < 2)
                     i++;
-                else 
-                    chainCanvas.Paused = true; 
-            else
-                if (i < chain.Particles[0].R.Count - 1)
-                    i++;
-                else 
+                else
+                {
                     chainCanvas.Paused = true;
+                    await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+                    () =>
+                    {
+                        staticChainButton.IsEnabled = true;
+                    });                 
+                }
+                    
+            else
+                if (i < chain.Particles[0].R.Count - timeScale)
+                    i += timeScale;
+                else
+                {
+                    chainCanvas.Paused = true;
+                    await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+                    () =>
+                    {
+                        staticChainButton.IsEnabled = true;
+                    });
+                }
         }
 
         private void coordChainCanvas_Draw(
@@ -160,15 +173,15 @@ namespace Oscillator
             {
                 chainCanvas.Paused = true;
                 coordChainCanvas.Paused = true;
-                i = 0;
-                k = 0;
+
                 isStaticStep = true;
                 evaluationBar.Visibility = Visibility.Visible;
                 evaluationBar.IsIndeterminate = true;
                 //await Task.Delay(5000);
+                double dt = dtField.Value;
                 await Task.Run(() =>
                 {
-                    chain.StaticStep();
+                    chain.StaticStep(dt);
                     chain.DynamicStep();
                 });
 
@@ -199,8 +212,15 @@ namespace Oscillator
         private void dynamicButton_Click(object sender, RoutedEventArgs e)
         {
             isStaticStep = false;
+            i = 0;
+            k = 0;
+            staticChainButton.IsEnabled = false;
             chainCanvas.Paused = ! chainCanvas.Paused;
             coordChainCanvas.Paused = !coordChainCanvas.Paused;
+            if (!chainCanvas.Paused)
+                dynamicChainButton.Content = "Стоп";
+            else
+                dynamicChainButton.Content = "Начать движение";
         }
     }
 }

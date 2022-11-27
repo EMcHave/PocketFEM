@@ -19,7 +19,8 @@ namespace Oscillator.Model
 
         public double t { get; set; }
         public int nT { get; private set; }
-        public double dt { get { return 1.0 / 60; } }
+
+        public double dt { get; private set; }
 
         public double mu { get; set; }
         public int nX { get; set; }
@@ -74,8 +75,14 @@ namespace Oscillator.Model
 
         }
 
-        public void StaticStep()
+        public void StaticStep(double userDefDt)
         {
+            double DT = 0.05 / Math.Sqrt(C / this.m);
+            int delta = (int)(t / DT) % (int)(60 * t);
+            dt = t / ((int)(t / DT) + 60 * t - delta);
+            if (!Double.IsNaN(userDefDt))
+                dt = userDefDt;
+
             Particles = new List<Particle>(N);
             ConstrainedParticles = new List<Particle>();
             CreateParticles();
@@ -100,7 +107,7 @@ namespace Oscillator.Model
                 resV[p.ID] = p.V[0];
             }
 
-            double dtau = 0.01;
+            double dtau = dt;
             double m = Particles[0].m;
 
             while (resV.Max(x => x.AbsoluteMaximum()) > eps)
@@ -144,6 +151,7 @@ namespace Oscillator.Model
                 resV[p.ID] = p.V[1];
             }
             nT = (int)(t / dt);
+
             for (int n = 2; n < nT; n++)
             {
                 TimeStep(a, b, c, f, C_i, ref resR, ref resV, dt);
