@@ -72,6 +72,10 @@
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="staticChainButton" Content="Расчет" IsEnabled="True" Click="staticButton_Click" Margin="0,0,10,0" Width="160" Height="40" HorizontalAlignment="Center"/>
                                 <Button x:Name="dynamicChainButton" Content="Начать движение" IsEnabled="False" Click="dynamicButton_Click" Margin="0,0,10,0" Width="160" Height="40" HorizontalAlignment="Center"/>
+                                <ComboBox x:Name="comboBox" Height="40" PlaceholderText="Выберите пресет">
+                                    <ComboBoxItem Content="Горизонтальная цепочка"/>
+                                    <ComboBoxItem Content="Вертикальная цепочка"/>
+                                </ComboBox>
                             </StackPanel>
 
                             <muxc:ProgressBar x:Name="evaluationBar" Visibility="Collapsed" IsIndeterminate="False" Width="329" HorizontalAlignment="Left" Margin="0,5,0,0" />

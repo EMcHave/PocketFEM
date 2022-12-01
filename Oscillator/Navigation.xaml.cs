@@ -22,7 +22,7 @@ namespace Oscillator
         public MainPage()
         {
             this.InitializeComponent();
-            nvView.SelectedItem = nvView.MenuItems[4];
+            nvView.SelectedItem = nvView.MenuItems[2];
             ApplicationViewTitleBar appTitleBar = ApplicationView.GetForCurrentView().TitleBar;
             appTitleBar.ButtonBackgroundColor = Colors.Transparent;            
             appTitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;

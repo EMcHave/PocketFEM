@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
+
 namespace Oscillator.Model
 {
     internal class Chain
@@ -13,6 +15,7 @@ namespace Oscillator.Model
         public List<Particle> Particles { get; set; }
         private List<Particle> ConstrainedParticles;
 
+        public Layout Layout;
 
         public double C { get; set; }
         public double m { get; set; }
@@ -25,6 +28,7 @@ namespace Oscillator.Model
         public double mu { get; set; }
         public int nX { get; set; }
         private double dx { get { return 1.0 / (nX - 1); } }
+        //private double dy { get { return 0.1 / (nY - 1); } }
 
         //public double H;
         public int nY { get; set; }
@@ -40,24 +44,39 @@ namespace Oscillator.Model
 
         public Chain()
         {
-            C = 100;
+            C = 1000;
             m = 5;
             t = 10;
             mu = 0;
-            nX = 5;
+            nX = 10;
             nY = 2;
 
         }
 
         private void SetConstraints(bool isFree)
         {
-            for(int i = 0; i < nY; i++)
+            switch(this.Layout)
             {
-                ConstrainedParticles.Add(Particles[i * nX]);
-                ConstrainedParticles.Add(Particles[nX * (i + 1) - 1]);
+                case Layout.Horizontal:
+                    for (int i = 0; i < nY; i++)
+                    {
+                        ConstrainedParticles.Add(Particles[i * nX]);
+                        ConstrainedParticles.Add(Particles[nX * (i + 1) - 1]);
+                    }
+                    break;
+                case Layout.Vertical:
+                    for (int i = 0; i < nY; i++)
+                    {
+                        if ((i * nX) % (2 * nX) == 0)
+                            ConstrainedParticles.Add(Particles[i * nX]);
+                        if (i % 2 != 0)
+                            ConstrainedParticles.Add(Particles[nX * (i + 1) - 1]);
+                    }                        
+                    break;
             }
+
             if (isFree)
-                ConstrainedParticles.Clear(); ConstrainedParticles.Add(Particles[0]);
+            { ConstrainedParticles.Clear(); ConstrainedParticles.Add(Particles[0]); }
         }
         private void ApplyConstraints(double[] a,
                                       double[] b,
@@ -111,7 +130,7 @@ namespace Oscillator.Model
             double m = Particles[0].m;
 
             while (resV.Max(x => x.AbsoluteMaximum()) > eps)
-            {
+            {              
                 tempR = resR.ToList<Vector<double>>();
 
                 TimeStep(a, b, c, f, C_i, ref resR, ref resV, dtau);
@@ -120,7 +139,6 @@ namespace Oscillator.Model
                 {
                     resR[i] = tempR[i] + dtau * resV[i];
                 }
-                //Console.WriteLine(deltas.Max());
             }
             Vector<double> A = Vector<double>.Build.DenseOfArray(new double[] { 0, 0 });
             foreach (Particle p in Particles)
@@ -244,20 +262,41 @@ namespace Oscillator.Model
 
         private void CreateParticles()
         {
-            for (int n = 0; n < nY; n++)
+            Vector<double> v = Vector<double>.Build.DenseOfArray(new double[] { 0, 1 });
+            Vector<double> a = Vector<double>.Build.DenseOfArray(new double[] { 0, 0 });
+
+            switch (this.Layout)
             {
-                Vector<double> v = Vector<double>.Build.DenseOfArray(new double[] { 0, 1 });
-                Vector<double> a = Vector<double>.Build.DenseOfArray(new double[] { 0, 0 });
-                if (n % 2 == 0)
-                    for (int i = 0; i < nX; i++)
-                        Particles.Add(new Particle(
-                            Vector<double>.Build.DenseOfArray(new double[] { i * dx, -n * dx }),
-                            v, a, m, Particles.Count, nT));
-                else
-                    for (int i = nX - 1; i >= 0; i--)
-                        Particles.Add(new Particle(
-                            Vector<double>.Build.DenseOfArray(new double[] { i * dx, -n * dx }),
-                            v, a, m, Particles.Count, nT));
+                case Layout.Horizontal:
+                    for (int n = 0; n < nY; n++)
+                    {
+                        if (n % 2 == 0)
+                            for (int i = 0; i < nX; i++)
+                                Particles.Add(new Particle(
+                                    Vector<double>.Build.DenseOfArray(new double[] { i * dx, -n * dx }),
+                                    v, a, m, Particles.Count, nT));
+                        else
+                            for (int i = nX - 1; i >= 0; i--)
+                                Particles.Add(new Particle(
+                                    Vector<double>.Build.DenseOfArray(new double[] { i * dx, -n * dx }),
+                                    v, a, m, Particles.Count, nT));
+                    }
+                    break;
+                case Layout.Vertical:
+                    for (int n = 0; n < nY; n++)
+                    {
+                        if (n % 2 == 0)
+                            for (int i = 0; i < nX; i++)
+                                Particles.Add(new Particle(
+                                    Vector<double>.Build.DenseOfArray(new double[] { n * dx, -i * dx }),
+                                    v, a, m, Particles.Count, nT));
+                        else
+                            for (int i = nX - 1; i >= 0; i--)
+                                Particles.Add(new Particle(
+                                    Vector<double>.Build.DenseOfArray(new double[] { n * dx, -i * dx }),
+                                    v, a, m, Particles.Count, nT));
+                    }
+                    break;
             }
         }
     }
@@ -265,5 +304,11 @@ namespace Oscillator.Model
     class DrawEventArgs : EventArgs
     {
         public string whatToDraw { get; set; }
+    }
+
+    enum Layout
+    {
+        Horizontal,
+        Vertical
     }
 }

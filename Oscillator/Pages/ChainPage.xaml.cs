@@ -17,6 +17,7 @@ using Windows.UI;
 using System.Threading.Tasks;
 using Oscillator.Model;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.Interpolation;
 
 namespace Oscillator
 {
@@ -34,7 +35,7 @@ namespace Oscillator
         private List<double> time;
         private List<double> fullA;
         private bool isStaticStep;
-
+        double yScale, xScale;
         private Model.Chain chain;
         
 
@@ -43,6 +44,7 @@ namespace Oscillator
             chain = new Model.Chain();
             chain.drawEvent += Chain_drawEvent;
             this.InitializeComponent();
+            comboBox.SelectedIndex = 1;
         }
 
         private void Chain_drawEvent(object sender, Model.DrawEventArgs e)
@@ -53,8 +55,14 @@ namespace Oscillator
 
             w = (float)chainCanvas.Width;
             hcoord = (float)coordChainCanvas.Height;
-            double xScale = (w - 50) / 2;
-            double yScale = (chainCanvas.Height - 50) / maxY;
+
+
+            yScale = (chainCanvas.Height - 50) / maxY;
+            if (chain.Layout == Layout.Horizontal)
+                xScale = (w - 50) / 2;
+            else
+                xScale = yScale;
+
             timeScale = (int)((1.0 / chain.dt) / 60);
 
             foreach (Particle p in chain.Particles)
@@ -79,7 +87,7 @@ namespace Oscillator
             maxA = fullA.Max();
             for (int i = 0; i < fullA.Count; i++)
                 fullA[i] = hcoord - fullA[i] * hcoord / maxA;
-            
+
             chainCanvas.Paused = !chainCanvas.Paused;
         }
 
@@ -89,7 +97,7 @@ namespace Oscillator
         {
             foreach (Particle p in chain.Particles)
                 args.DrawingSession.FillCircle((float)(p.R[i][0] + w / 2), -(float)(p.R[i][1] - 10), 10, Color.FromArgb(255, 0, 191, 255));
-           
+            
             if (isStaticStep)
                 if (i < 2)
                     i++;
@@ -97,10 +105,7 @@ namespace Oscillator
                 {
                     chainCanvas.Paused = true;
                     await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
-                    () =>
-                    {
-                        staticChainButton.IsEnabled = true;
-                    });                 
+                    () => { staticChainButton.IsEnabled = true; });               
                 }
                     
             else
@@ -110,10 +115,7 @@ namespace Oscillator
                 {
                     chainCanvas.Paused = true;
                     await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
-                    () =>
-                    {
-                        staticChainButton.IsEnabled = true;
-                    });
+                    () => { staticChainButton.IsEnabled = true; });
                 }
         }
 
@@ -121,11 +123,11 @@ namespace Oscillator
             Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender,
             Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
         {
-            
+            //float g = (float)(hcoord * (1 - 9.8 / maxA));
             args.DrawingSession.DrawImage(clCoord);
-
+            args.DrawingSession.DrawLine(0, (float)(hcoord * (1 - 9.8 / maxA)), 790, (float)(hcoord * (1 - 9.8 / maxA)), Color.FromArgb(255, 0, 255, 0), 2);
             args.DrawingSession.FillCircle((float)time[k], (float)fullA[k], 8, Color.FromArgb(255, 255, 0, 0));
-            args.DrawingSession.DrawText(maxA.ToString(), 10, 2, Color.FromArgb(255, 255, 255, 255));
+            args.DrawingSession.DrawText("A_max = " + maxA.ToString(), 10, 2, Color.FromArgb(255, 255, 255, 255));
             args.DrawingSession.DrawGeometry(speedPath, Color.FromArgb(255, 0, 191, 255));
             if (k < fullA.Count - 1)
                 k++;
@@ -159,8 +161,8 @@ namespace Oscillator
             {
                 clds.DrawLine(1, 0, 1, 300, Color.FromArgb(255, 255, 255, 255), 2);
                 clds.DrawLine(0, 299, 790, 299, Color.FromArgb(255, 255, 255, 255), 2);
-                clds.DrawText("time", 750, 260, Color.FromArgb(255, 255, 255, 255));
-                clds.DrawText("Acceleration", 600, 2, Color.FromArgb(255, 255, 0, 0));
+                clds.DrawText("g", 650, 20, Color.FromArgb(255, 0, 255, 0));
+                clds.DrawText("Acceleration", 650, 2, Color.FromArgb(255, 0, 191, 255));
             }
         }
 
@@ -179,11 +181,15 @@ namespace Oscillator
                 evaluationBar.IsIndeterminate = true;
                 //await Task.Delay(5000);
                 double dt = dtField.Value;
+                chain.Layout = (Model.Layout)comboBox.SelectedIndex;
                 await Task.Run(() =>
                 {
                     chain.StaticStep(dt);
                     chain.DynamicStep();
                 });
+
+                i = 0;
+                k = 0;
 
                 dynamicChainButton.IsEnabled = true;
             }
@@ -212,8 +218,8 @@ namespace Oscillator
         private void dynamicButton_Click(object sender, RoutedEventArgs e)
         {
             isStaticStep = false;
-            i = 0;
-            k = 0;
+
+
             staticChainButton.IsEnabled = false;
             chainCanvas.Paused = ! chainCanvas.Paused;
             coordChainCanvas.Paused = !coordChainCanvas.Paused;

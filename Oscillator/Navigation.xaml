@@ -52,8 +52,8 @@
             DisplayModeChanged="NavigationViewControl_DisplayModeChanged">
             
             <muxc:NavigationView.MenuItems>
-                <muxc:NavigationViewItem Icon="Home" Content="Свободные колебания" Tag="Page1" />
-                <muxc:NavigationViewItem Icon="Play" Content="Вынужденные колебания" Tag="Page2" />
+                <!--<muxc:NavigationViewItem Icon="Home" Content="Свободные колебания" Tag="Page1" />-->
+                <!--<muxc:NavigationViewItem Icon="Play" Content="Вынужденные колебания" Tag="Page2" />-->
                 <muxc:NavigationViewItem Icon="Map" Content="Нелинейное трение" Tag="BlankPage1" />
                 <muxc:NavigationViewItem Icon="XboxOneConsole" Content="FEM" Tag="FEM"/>
                 <muxc:NavigationViewItem Icon="Play" Content="Цепочка" Tag="ChainPage"/>

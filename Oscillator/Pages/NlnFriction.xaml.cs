@@ -14,8 +14,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI;
-
-
+using System.Threading.Tasks;
 
 namespace Oscillator
 {
@@ -158,13 +157,13 @@ namespace Oscillator
             }
         }
 
-        private void startButton_Click(object sender, RoutedEventArgs e)
+        async private void startButton_Click(object sender, RoutedEventArgs e)
         {
             i = 0;
             j = 0;
             k = 0;
 
-            nonLinear.Plots();
+            await Task.Run(()=> nonLinear.Plots());
             animCanvas.Paused = !animCanvas.Paused;
             phaseCanvas.Paused = !phaseCanvas.Paused;
             coordCanvas.Paused = !coordCanvas.Paused;
