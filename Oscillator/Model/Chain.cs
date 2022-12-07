@@ -3,10 +3,10 @@ using MathNet.Numerics.LinearAlgebra.Complex;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-
-
+using Windows.UI.Xaml.Input;
 
 namespace Oscillator.Model
 {
@@ -24,6 +24,7 @@ namespace Oscillator.Model
         public int nT { get; private set; }
 
         public double dt { get; private set; }
+        public double mulT { get { return Math.Sqrt(dx / g); } }
 
         public double mu { get; set; }
         public int nX { get; set; }
@@ -35,8 +36,9 @@ namespace Oscillator.Model
         //private double dy { get { return H / (nY - 1); } }
 
         public int N { get { return nX * nY; } }
-
-        private readonly Vector<double> g = Vector<double>.Build.DenseOfArray(new double[] { 0, -9.81 });
+        public const double g = 9.81;
+        private readonly Vector<double> gk = Vector<double>.Build.DenseOfArray(new double[] { 0, -9.81 });
+        private readonly Vector<double> gk_norm = Vector<double>.Build.DenseOfArray(new double[] { 0, -1.0 });
 
         public delegate void Draw(object sender, DrawEventArgs e);
         public event Draw drawEvent;
@@ -96,6 +98,7 @@ namespace Oscillator.Model
 
         public void StaticStep(double userDefDt)
         {
+            //double DT = 0.05 / Math.Sqrt(dx * C / this.m / g);
             double DT = 0.05 / Math.Sqrt(C / this.m);
             int delta = (int)(t / DT) % (int)(60 * t);
             dt = t / ((int)(t / DT) + 60 * t - delta);
@@ -224,6 +227,37 @@ namespace Oscillator.Model
                                 double dtau)
         {
             double m = Particles[0].m;
+            /*
+            /// жесткости на k + 1 итерации ///
+            for (int i = 0; i < N - 1; i++)
+                C_i[i] = ((resR[i + 1] - resR[i]).L2Norm() - 1) /
+                    (resR[i + 1] - resR[i]).L2Norm() * (C * dx / m / g);
+
+            /// начала и концы массивов a, b, c,  f ///
+            a[0] = 0;
+            a[N - 1] = -C_i[N - 2];
+
+            c[0] = -C_i[0];
+            c[N - 1] = 0;
+
+            b[0] = C_i[0] + 1 / dtau / dtau + mu / dtau;
+            b[N - 1] = C_i[N - 2] + 1 / dtau / dtau + mu / dtau;
+
+            f[0] = 1 / dtau * (resV[0] / dtau + C_i[0] * resR[1] - (C_i[0] + 0) * resR[0] + gk_norm);
+            f[N - 1] = 1 / dtau * (resV[N - 1] / dtau - (C_i[N - 2] + 0) * resR[N - 1]
+                    + C_i[N - 2] * resR[N - 2] + gk_norm);
+
+            /// заполнение массивов a, b, c, f \\\
+            for (int i = 1; i < N - 1; i++)
+            {
+                a[i] = -C_i[i - 1];
+                b[i] = (C_i[i - 1] + C_i[i]) + 1 / dtau / dtau + mu / dtau;
+                c[i] = -C_i[i];
+                f[i] = 1 / dtau * (resV[i] / dtau + C_i[i] * resR[i + 1] - (C_i[i] + C_i[i - 1]) * resR[i]
+                    + C_i[i - 1] * resR[i - 1] + gk_norm);
+            }
+            */
+            
             /// жесткости на k + 1 итерации ///
             for (int i = 0; i < N - 1; i++)
                 C_i[i] = ((resR[i + 1] - resR[i]).L2Norm() - dx) /
@@ -239,9 +273,9 @@ namespace Oscillator.Model
             b[0] = C_i[0] + 1 / dtau / dtau + mu / dtau;
             b[N - 1] = C_i[N - 2] + 1 / dtau / dtau + mu / dtau;
 
-            f[0] = 1 / dtau * (resV[0] / dtau + C_i[0] * resR[1] - (C_i[0] + 0) * resR[0] + g);
+            f[0] = 1 / dtau * (resV[0] / dtau + C_i[0] * resR[1] - (C_i[0] + 0) * resR[0] + gk);
             f[N - 1] = 1 / dtau * (resV[N - 1] / dtau - (C_i[N - 2] + 0) * resR[N - 1]
-                    + C_i[N - 2] * resR[N - 2] + g);
+                    + C_i[N - 2] * resR[N - 2] + gk);
 
             /// заполнение массивов a, b, c, f \\\
             for (int i = 1; i < N - 1; i++)
@@ -250,9 +284,9 @@ namespace Oscillator.Model
                 b[i] = (C_i[i - 1] + C_i[i]) + 1 / dtau / dtau + mu / dtau;
                 c[i] = -C_i[i];
                 f[i] = 1 / dtau * (resV[i] / dtau + C_i[i] * resR[i + 1] - (C_i[i] + C_i[i - 1]) * resR[i]
-                    + C_i[i - 1] * resR[i - 1] + g);
+                    + C_i[i - 1] * resR[i - 1] + gk);
             }
-
+            
             /// задание закреплений ///
             ApplyConstraints(a, b, c, f);
 
