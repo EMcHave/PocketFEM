@@ -21,7 +21,8 @@ namespace Oscillator.Model
             V = new List<Vector<double>>(nT);
             A = new List<Vector<double>>(nT);
             this.R.Add(r);
-            this.V.Add(r);
+            this.V.Add(v);
+            this.A.Add(a);
             this.m = m;
             ID = iD;
         }

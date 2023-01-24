@@ -29,7 +29,7 @@ namespace Oscillator
         private int k;
         private int timeScale;
         private float w;
-        private float hcoord;
+        private float h;
         private double maxA;
         private CanvasGeometry speedPath;
         private List<double> time;
@@ -45,26 +45,28 @@ namespace Oscillator
             chain.drawEvent += Chain_drawEvent;
             this.InitializeComponent();
             comboBox.SelectedIndex = 1;
+            forceComboBox.SelectedIndex = 0;
+            w = (float)chainCanvas.Width;
+            h = (float)coordChainCanvas.Height;
         }
 
         private void Chain_drawEvent(object sender, Model.DrawEventArgs e)
         {
+            /// Отключение прогресс-бара ///
             evaluationBar.Visibility = Visibility.Collapsed;
             evaluationBar.IsIndeterminate = false;
+
+            /// Введение масштабов по времени и пространству для отрисовки ///
+            timeScale = (int)((1.0 / chain.dt) * chain.mulT / 60 / TimeSlider.Value);
             double maxY = chain.Particles.Max(x => x.MaxY);
-
-            w = (float)chainCanvas.Width;
-            hcoord = (float)coordChainCanvas.Height;
-
 
             yScale = (chainCanvas.Height - 50) / maxY;
             if (chain.Layout == Layout.Horizontal)
-                xScale = (w - 50) / 2;
+                xScale = (w - 50) / 2 / chain.nX;
             else
-                xScale = yScale;
+                xScale = (w - 50) / 2 / (chain.nX - 1);
 
-            timeScale = (int)((1.0 / chain.dt) / 60);
-
+            /// Преобразование координат в соответствии с масштабом ///
             foreach (Particle p in chain.Particles)
             {
                 foreach (Vector<double> r in p.R)
@@ -73,21 +75,8 @@ namespace Oscillator
                     r[1] *= yScale;
                 }
             }
-            fullA = new List<double>(chain.Particles[0].A.Count);
-            time = new List<double>(chain.Particles[0].A.Count);
 
-            timeScale = (int)((1.0 / chain.dt) / 60);
-
-            for(int i = 0; i < chain.Particles[0].A.Count; i+=timeScale)
-            {
-                fullA.Add(Math.Sqrt(chain.Particles[chain.N - 1].A[i][0] * chain.Particles[chain.N - 1].A[i][0] +
-                                     chain.Particles[chain.N - 1].A[i][1] * chain.Particles[chain.N - 1].A[i][1]));
-                time.Add(i * chain.dt * w/chain.t);
-            }
-            maxA = fullA.Max();
-            for (int i = 0; i < fullA.Count; i++)
-                fullA[i] = hcoord - fullA[i] * hcoord / maxA;
-
+            /// Начало отрисовки ///
             chainCanvas.Paused = !chainCanvas.Paused;
         }
 
@@ -125,7 +114,7 @@ namespace Oscillator
         {
             //float g = (float)(hcoord * (1 - 9.8 / maxA));
             args.DrawingSession.DrawImage(clCoord);
-            args.DrawingSession.DrawLine(0, (float)(hcoord * (1 - 9.8 / maxA)), 790, (float)(hcoord * (1 - 9.8 / maxA)), Color.FromArgb(255, 0, 255, 0), 2);
+            args.DrawingSession.DrawLine(0, (float)(h * (1 - 9.8 / maxA)), 790, (float)(h * (1 - 9.8 / maxA)), Color.FromArgb(255, 0, 255, 0), 2);
             args.DrawingSession.FillCircle((float)time[k], (float)fullA[k], 8, Color.FromArgb(255, 255, 0, 0));
             args.DrawingSession.DrawText("A_max = " + maxA.ToString(), 10, 2, Color.FromArgb(255, 255, 255, 255));
             args.DrawingSession.DrawGeometry(speedPath, Color.FromArgb(255, 0, 191, 255));
@@ -166,8 +155,6 @@ namespace Oscillator
             }
         }
 
-
-
         async private void staticButton_Click(object sender, RoutedEventArgs e)
         {
             if (!Double.IsNaN(nXField.Value) && !Double.IsNaN(lField.Value) && !Double.IsNaN(timeField.Value)
@@ -182,6 +169,7 @@ namespace Oscillator
                 //await Task.Delay(5000);
                 double dt = dtField.Value;
                 chain.Layout = (Model.Layout)comboBox.SelectedIndex;
+                chain.ForceType = (Model.ForceType)forceComboBox.SelectedIndex;
                 await Task.Run(() =>
                 {
                     chain.StaticStep(dt);
@@ -205,6 +193,47 @@ namespace Oscillator
 
         }
 
+        private void dynamicButton_Click(object sender, RoutedEventArgs e)
+        {
+            i = 0; k = 0;
+            isStaticStep = false;
+            staticChainButton.IsEnabled = false;
+
+            /// шаг по времени для отрисовки ///
+            timeScale = (int)((1.0 / chain.dt) * chain.mulT / 60 / TimeSlider.Value);
+
+            /// Заполнение массивов для отрисовки графика ///
+            fullA = new List<double>(chain.Particles[0].A.Count);
+            time = new List<double>(chain.Particles[0].A.Count);
+
+            for (int i = 0; i < chain.Particles[0].A.Count; i += timeScale)
+            {
+                fullA.Add(Chain.g * Math.Sqrt(chain.Particles[chain.N - 1].A[i][0] * chain.Particles[chain.N - 1].A[i][0] +
+                                     chain.Particles[chain.N - 1].A[i][1] * chain.Particles[chain.N - 1].A[i][1]));
+                time.Add(i * chain.dt / chain.mulT / chain.T * w);
+            }
+
+            maxA = fullA.Max();
+            for (int i = 0; i < fullA.Count; i++)
+                fullA[i] = h - fullA[i] * h / maxA;
+
+            /// Включаем анимацию цепочки и графика ///
+            chainCanvas.Paused = !chainCanvas.Paused;
+            coordChainCanvas.Paused = !coordChainCanvas.Paused;
+        }
+
+        private void comboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (comboBox.SelectedIndex == 0) { hField.IsEnabled = false; }
+            if (comboBox.SelectedIndex == 1) { hField.IsEnabled =true; }
+        }
+
+        private void TimeSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            double timespeed = TimeSlider.Value;
+            timeScale = (int)((1.0 / chain.dt) * chain.mulT / 60 / timespeed);
+        }
+
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             
@@ -213,20 +242,6 @@ namespace Oscillator
             coordChainCanvas.RemoveFromVisualTree();
             coordChainCanvas = null;
             
-        }
-
-        private void dynamicButton_Click(object sender, RoutedEventArgs e)
-        {
-            isStaticStep = false;
-
-
-            staticChainButton.IsEnabled = false;
-            chainCanvas.Paused = ! chainCanvas.Paused;
-            coordChainCanvas.Paused = !coordChainCanvas.Paused;
-            if (!chainCanvas.Paused)
-                dynamicChainButton.Content = "Стоп";
-            else
-                dynamicChainButton.Content = "Начать движение";
         }
     }
 }
