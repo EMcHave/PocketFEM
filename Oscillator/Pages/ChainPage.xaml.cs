@@ -37,6 +37,7 @@ namespace Oscillator
         private bool isStaticStep;
         double yScale, xScale;
         private Model.Chain chain;
+        bool isBall;
         
 
         public ChainPage()
@@ -46,6 +47,7 @@ namespace Oscillator
             this.InitializeComponent();
             comboBox.SelectedIndex = 1;
             forceComboBox.SelectedIndex = 0;
+            plotCombobox.SelectedIndex = 0;
             w = (float)chainCanvas.Width;
             h = (float)coordChainCanvas.Height;
         }
@@ -86,7 +88,11 @@ namespace Oscillator
         {
             foreach (Particle p in chain.Particles)
                 args.DrawingSession.FillCircle((float)(p.R[i][0] + w / 2), -(float)(p.R[i][1] - 10), 10, Color.FromArgb(255, 0, 191, 255));
-            
+
+            if(!isStaticStep)
+                if(isBall)
+                    args.DrawingSession.FillCircle((float)(w / 4), (float)(((i * chain.dt) * (i * chain.dt / 2)) * yScale + 10), 10, Color.FromArgb(255, 255, 0, 0));
+
             if (isStaticStep)
                 if (i < 2)
                     i++;
@@ -205,12 +211,19 @@ namespace Oscillator
             /// Заполнение массивов для отрисовки графика ///
             fullA = new List<double>(chain.Particles[0].A.Count);
             time = new List<double>(chain.Particles[0].A.Count);
+            double TIME;
 
-            for (int i = 0; i < chain.Particles[0].A.Count; i += timeScale)
+            for (int t = 0; t < chain.Particles[0].A.Count; t += timeScale)
             {
-                fullA.Add(Chain.g * Math.Sqrt(chain.Particles[chain.N - 1].A[i][0] * chain.Particles[chain.N - 1].A[i][0] +
-                                     chain.Particles[chain.N - 1].A[i][1] * chain.Particles[chain.N - 1].A[i][1]));
-                time.Add(i * chain.dt / chain.mulT / chain.T * w);
+                TIME = t * chain.dt / chain.mulT;
+                time.Add(t * chain.dt / chain.mulT / chain.T * w);
+                if (plotCombobox.SelectedIndex == 0)
+                    fullA.Add(Chain.g * Math.Sqrt(chain.Particles[chain.N - 1].A[t][0] * chain.Particles[chain.N - 1].A[t][0] +
+                                     chain.Particles[chain.N - 1].A[t][1] * chain.Particles[chain.N - 1].A[t][1]));
+                else
+                    fullA.Add(Math.Abs(chain.dx * chain.Particles[chain.N - 1].R[t][1] * chain.dx) - Math.Abs(TIME * TIME / 2));
+                    
+                
             }
 
             maxA = fullA.Max();
@@ -232,6 +245,14 @@ namespace Oscillator
         {
             double timespeed = TimeSlider.Value;
             timeScale = (int)((1.0 / chain.dt) * chain.mulT / 60 / timespeed);
+        }
+
+        private void Ball_Checked(object sender, RoutedEventArgs e)
+        {
+            if ((bool)Ball.IsChecked)
+                isBall = true;
+            else
+                isBall = false;
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
